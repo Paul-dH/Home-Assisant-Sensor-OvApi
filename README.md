@@ -1,9 +1,10 @@
-## Work in progress !!
+### Work in progress !!
 
 
-### Public Transport information of [OVapi](http://www.ovapi.nl) for Home Assistant
+## Public Transport information of [OVapi](http://www.ovapi.nl) for Home Assistant
 
 This is a sensor for Home Assistant and it will retrieve departure information of a particular stop. The sensor returns a list of departure times and the reported delay.
+
 
 ### Install:
 - Copy the ovapi.py file to: custom_components/sensor/
@@ -15,6 +16,7 @@ sensor:
     stop_code: 9505
     route_code: 32009505
 ```
+
 
 ### To find the stop_code (stopareacode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/stopareacode)
 > I've used the building JSON parser from Firefox, the search input is on the top right.
@@ -33,10 +35,12 @@ sensor:
 - Look for the key 'DestinationName50', this should hold the destination that you want. If this is the wrong way, then you should close the JSON output and open the other route code key.
 - Note the route_code and the stop_code and place these values in the sensor configuration.
 
+
 ### This repro holds a couple of files:
 - README.md (this file containing the documentation)
 - example.py (example script without all the Home Assistant code)
 - ovapi.py (the script for Home Assistant)
+
 
 ### Note and credits
 Since I'm new to coding in Python, this sensor leans heavily on code from [danito](https://github.com/danito/HA-Config/blob/master/custom_components/sensor/stib.py), he implemented public transport information from Belgium in a sensor.
