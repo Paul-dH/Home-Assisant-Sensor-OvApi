@@ -58,26 +58,10 @@ class OvApiSensor(Entity):
         #self._json_data = json.dumps(ovapi, sort_keys=True, cls=JSONEncoder.encode('UTF-8')
         #self._json_data = json.dumps(ovapi, default=lambda o: o.__dict__, sort_keys=True, indent=4)
         #self._json_data = json.dumps(ovapi)
-        self._json_data = ovapi.ovapi
+        self._json_data = ovapi
         self._name = name
         self._stop_code = stop_code
         self._route_code = route_code
-
-        _LOGGER.warning(self._json_data)
-
-        for line in self._json_data[self._stop_code][self._route_code]['Passes']:
-            self._destination = self._json_data[self._stop_code][self._route_code]['Passes'][line]['DestinationName50']
-            self._provider = self._json_data[self._stop_code][self._route_code]['Passes'][line]['DataOwnerCode']
-            self._transport_type = self._json_data[self._stop_code][self._route_code]['Passes'][line]['TransportType'].title()
-            self._line_name = self._transport_type + ' ' + self._json_data[self._stop_code][self._route_code]['Passes'][line]['LinePublicNumber'] + ' - ' + self._destination
-            self._stop_name = self._json_data[self._stop_code][self._route_code]['Passes'][line]['TimingPointName']
-
-        if self._transport_type == "TRAM":
-            self._icon = 'mdi:train'
-        if self._transport_type == "BUS":
-            self._icon = 'mdi:bus'
-        if self._transport_type == "METRO":
-            self._icon = 'mdi:subway-variant'
 
     @property
     def name(self):
@@ -113,11 +97,29 @@ class OvApiSensor(Entity):
         await self._json_data.async_update()
         self._json_data = self._json_data
 
+        data_object = self._json_data.result.read()
+
+        _LOGGER.warning("Debug print object: " + data_object)
+
+        for line in data_object[self._stop_code][self._route_code]['Passes'].items():
+            self._destination = data_object[self._stop_code][self._route_code]['Passes'][line]['DestinationName50']
+            self._provider = data_object[self._stop_code][self._route_code]['Passes'][line]['DataOwnerCode']
+            self._transport_type = data_object[self._stop_code][self._route_code]['Passes'][line]['TransportType'].title()
+            self._line_name = self._transport_type + ' ' + data_object[self._stop_code][self._route_code]['Passes'][line]['LinePublicNumber'] + ' - ' + self._destination
+            self._stop_name = data_object[self._stop_code][self._route_code]['Passes'][line]['TimingPointName']
+
+        if self._transport_type == "TRAM":
+            self._icon = 'mdi:train'
+        if self._transport_type == "BUS":
+            self._icon = 'mdi:bus'
+        if self._transport_type == "METRO":
+            self._icon = 'mdi:subway-variant'
+
 class OvApiData:
     def __init__(self, stop_code):
         self.resource = _RESOURCE
         self.stop_code = stop_code
-        self.result = None
+        #self.result = None
         self.headers = {
             'cache-control': "no-cache",
             'accept': "application/json"
@@ -128,10 +130,13 @@ class OvApiData:
         try:
             response = http.client.HTTPConnection(self.resource)
             response.request("GET", "/stopareacode/" + self.stop_code, headers = self.headers)
-            self.result = response.json()
+            result = response.getresponse()
+            self.result = json.loads(result.read())
             #self.response_data = json.dumps(result)
-            #_LOGGER.warning(self.response_data)
-            self.success = True
+            _LOGGER.warning(self.result)
+            #self.success = True
         except:
             _LOGGER.error("Impossible to get data from OvApi")
-            self.success = False
+            self.result = "Impossible to get data from OvApi"
+
+        return self.result
