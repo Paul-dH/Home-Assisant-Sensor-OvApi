@@ -41,6 +41,7 @@ async def async_setup_platform(
     session = async_get_clientsession(hass)
 
     ovapi = OvApiData(stop_code)
+    #_LOGGER.warning(ovapi)
 
     await ovapi.async_update()
 
@@ -54,37 +55,69 @@ async def async_setup_platform(
 
 class OvApiSensor(Entity):
     def __init__(self, ovapi, name, stop_code, route_code):
-        self.data = ovapi
+        #self._json_data = json.dumps(ovapi, sort_keys=True, cls=JSONEncoder.encode('UTF-8')
+        #self._json_data = json.dumps(ovapi, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+        #self._json_data = json.dumps(ovapi)
+        self._json_data = ovapi.ovapi
         self._name = name
         self._stop_code = stop_code
         self._route_code = route_code
 
+        _LOGGER.warning(self._json_data)
+
+        for line in self._json_data[self._stop_code][self._route_code]['Passes']:
+            self._destination = self._json_data[self._stop_code][self._route_code]['Passes'][line]['DestinationName50']
+            self._provider = self._json_data[self._stop_code][self._route_code]['Passes'][line]['DataOwnerCode']
+            self._transport_type = self._json_data[self._stop_code][self._route_code]['Passes'][line]['TransportType'].title()
+            self._line_name = self._transport_type + ' ' + self._json_data[self._stop_code][self._route_code]['Passes'][line]['LinePublicNumber'] + ' - ' + self._destination
+            self._stop_name = self._json_data[self._stop_code][self._route_code]['Passes'][line]['TimingPointName']
+
+        if self._transport_type == "TRAM":
+            self._icon = 'mdi:train'
+        if self._transport_type == "BUS":
+            self._icon = 'mdi:bus'
+        if self._transport_type == "METRO":
+            self._icon = 'mdi:subway-variant'
+
     @property
     def name(self):
         """Return the name of the sensor."""
-        return "{} {}".format(self._name, "stop " + self._stop_code)
+        return "{} {}".format(self._name, "_stop_" + self._stop_code)
 
     @property
     def icon(self):
-        """Icon to use in the frontend, if any."""
         return self._icon
 
     @property
     def destination(self):
-        for line in data[stopAreaCode][routeForth]['Passes']:
-            return self.data[stopAreaCode][routeForth]['Passes'][line]['DestinationName50']
+        return self._destination
+
+    @property
+    def provider(self):
+        return self._provider
+
+    @property
+    def transport_type(self):
+        return self._transport_type
+
+    @property
+    def line_name(self):
+        return self._line_name
+
+    @property
+    def stop_name(self):
+        return self._stop_name
 
     async def async_update(self):
         """Get the latest data from the OvApi."""
-        await self.data.async_update()
-        self.data = self.data.data
-
+        await self._json_data.async_update()
+        self._json_data = self._json_data
 
 class OvApiData:
     def __init__(self, stop_code):
         self.resource = _RESOURCE
         self.stop_code = stop_code
-        self.data = None
+        self.result = None
         self.headers = {
             'cache-control': "no-cache",
             'accept': "application/json"
@@ -95,8 +128,9 @@ class OvApiData:
         try:
             response = http.client.HTTPConnection(self.resource)
             response.request("GET", "/stopareacode/" + self.stop_code, headers = self.headers)
-            result = response.getresponse()
-            self.data = json.loads(response.read())
+            self.result = response.json()
+            #self.response_data = json.dumps(result)
+            #_LOGGER.warning(self.response_data)
             self.success = True
         except:
             _LOGGER.error("Impossible to get data from OvApi")
