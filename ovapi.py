@@ -84,7 +84,7 @@ class OvApiData:
     def __init__(self, stop_code):
         self.resource = _RESOURCE
         self.stop_code = stop_code
-        self.result = None
+        self.data = None
         self.headers = {
             'cache-control': "no-cache",
             'accept': "application/json"
@@ -95,7 +95,8 @@ class OvApiData:
         try:
             response = http.client.HTTPConnection(self.resource)
             response.request("GET", "/stopareacode/" + self.stop_code, headers = self.headers)
-            self.result = response.getresponse()
+            result = response.getresponse()
+            self.data = json.loads(response.read())
             self.success = True
         except:
             _LOGGER.error("Impossible to get data from OvApi")
