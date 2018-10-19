@@ -54,7 +54,7 @@ async def async_setup_platform(
 
 class OvApiSensor(Entity):
     def __init__(self, ovapi, name, stop_code, route_code):
-        self.data = json.loads(ovapi.read())
+        self.data = ovapi
         self._name = name
         self._stop_code = stop_code
         self._route_code = route_code
