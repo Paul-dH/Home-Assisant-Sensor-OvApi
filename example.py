@@ -21,11 +21,14 @@ result = connection.getresponse()
 string = result.read().decode('utf-8')
 data = json.loads(string)
 
-destination = next(iter(data[stop_code][route_code]['Passes'].values()))['DestinationName50']
-provider = next(iter(data[stop_code][route_code]['Passes'].values()))['DataOwnerCode']
-transport_type = next(iter(data[stop_code][route_code]['Passes'].values()))['TransportType'].title()
-line_name = transport_type + ' ' + next(iter(data[stop_code][route_code]['Passes'].values()))['LinePublicNumber'] + ' - ' + destination
-stop_name = next(iter(data[stop_code][route_code]['Passes'].values()))['TimingPointName']
+for item in data[stop_code][route_code]['Passes'].values():
+    destination = item['DestinationName50']
+    provider = item['DataOwnerCode']
+    transport_type = item['TransportType'].title()
+    line_name = transport_type + ' ' + item['LinePublicNumber'] + ' - ' + destination
+    stop_name = item['TimingPointName']
+
+    #print(next(iter(data[stop_code][route_code]['Passes'].values())))
 
 print(destination)
 print(provider)
@@ -41,10 +44,10 @@ for stop in data[stop_code][route_code]['Passes']:
 
     TargetDepartureTime  = datetime.strptime(data[stop_code][route_code]['Passes'][stop]['TargetDepartureTime'], date_format)
     ExpectedArrivalTime  = datetime.strptime(data[stop_code][route_code]['Passes'][stop]['ExpectedDepartureTime'], date_format)
-    print("TargetDepartureTime: " + str(TargetDepartureTime) + " | ExpectedArrivalTime: " + str(ExpectedArrivalTime))
+    #print("TargetDepartureTime: " + str(TargetDepartureTime) + " | ExpectedArrivalTime: " + str(ExpectedArrivalTime))
 
     calculateDelay = ExpectedArrivalTime - TargetDepartureTime
-    print("calculateDelay: " + str(calculateDelay))
+    #print("calculateDelay: " + str(calculateDelay))
 
     delay = str(round((calculateDelay.seconds) / 60))
 
@@ -55,7 +58,7 @@ for stop in data[stop_code][route_code]['Passes']:
 
 stops.sort(key=operator.itemgetter('TargetDepartureTime'))
 
-print(stops)
+#print(stops)
 
 
 

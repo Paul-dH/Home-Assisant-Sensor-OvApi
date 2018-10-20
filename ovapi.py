@@ -18,12 +18,22 @@ _RESOURCE = 'v0.ovapi.nl'
 
 CONF_STOP_CODE = 'stop_code'
 CONF_ROUTE_CODE = 'route_code'
-
-ATTR_CREDITS = 'Data provided by v0.ovapi.nl'
+CONF_CREDITS = 'Data provided by v0.ovapi.nl'
 
 DEFAULT_NAME = 'Line info'
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=30)
+ATTR_NAME = 'name'
+ATTR_STOP_CODE = 'stop_code'
+ATTR_ROUTE_CODE = 'route_code'
+ATTR_ICON = 'icon'
+ATTR_DESTINATION = 'destination'
+ATTR_PROVIDER = 'provider'
+ATTR_TRANSPORT_TYPE = 'transport_type'
+ATTR_LINE_NAME = 'line_name'
+ATTR_STOP_NAME = 'stop_name'
+ATTR_CREDITS = 'credits'
+
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=15)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
@@ -41,9 +51,10 @@ async def async_setup_platform(
     session = async_get_clientsession(hass)
 
     ovapi = OvApiData(stop_code)
-    #_LOGGER.warning(ovapi)
 
     await ovapi.async_update()
+
+    #_LOGGER.warning(ovapi._result)
 
     if ovapi is None:
         raise PlatformNotReady
@@ -55,13 +66,16 @@ async def async_setup_platform(
 
 class OvApiSensor(Entity):
     def __init__(self, ovapi, name, stop_code, route_code):
-        #self._json_data = json.dumps(ovapi, sort_keys=True, cls=JSONEncoder.encode('UTF-8')
-        #self._json_data = json.dumps(ovapi, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-        #self._json_data = json.dumps(ovapi)
         self._json_data = ovapi
         self._name = name
         self._stop_code = stop_code
         self._route_code = route_code
+        self._icon = None
+        self._destination = None
+        self._provider = None
+        self._transport_type = None
+        self._line_name = None
+        self._stop_name = None
 
     @property
     def name(self):
@@ -92,28 +106,46 @@ class OvApiSensor(Entity):
     def stop_name(self):
         return self._stop_name
 
+    @property
+    def device_state_attributes(self):
+        """Return the state attributes."""
+        return{
+            ATTR_NAME: self._name,
+            ATTR_STOP_CODE: self._stop_code,
+            ATTR_ROUTE_CODE: self._route_code,
+            ATTR_ICON: self._icon,
+            ATTR_DESTINATION: self._destination,
+            ATTR_PROVIDER: self._provider,
+            ATTR_TRANSPORT_TYPE: self._transport_type,
+            ATTR_LINE_NAME: self._line_name,
+            ATTR_STOP_NAME: self._stop_name,
+            ATTR_CREDITS: CONF_CREDITS
+        }
+
     async def async_update(self):
         """Get the latest data from the OvApi."""
         await self._json_data.async_update()
-        self._json_data = self._json_data
 
-        #data_object = self._json_data.result
+        data = json.loads(self._json_data._result)
 
-        #_LOGGER.warning("Type object: " + type(self._json_data))
-        #string = self._json_data.read().decode('utf-8')
-        data = json.dumps(self._json_data.__dict__)
+        for item in data[self._stop_code][self._route_code]['Passes'].values():
+            self._destination = item['DestinationName50']
+            self._provider = item['DataOwnerCode']
+            self._transport_type = item['TransportType'].title()
+            self._line_name = self._transport_type + ' ' + item['LinePublicNumber'] + ' - ' + self._destination
+            self._stop_name = item['TimingPointName']
 
-        self._destination = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['DestinationName50']
-        self._provider = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['DataOwnerCode']
-        self._transport_type = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['TransportType'].title()
-        self._line_name = self._transport_type + ' ' + next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['LinePublicNumber'] + ' - ' + self._destination
-        self._stop_name = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['TimingPointName']
+        #self._destination = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['DestinationName50']
+        #self._provider = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['DataOwnerCode']
+        #self._transport_type = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['TransportType'].title()
+        #self._line_name = self._transport_type + ' ' + next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['LinePublicNumber'] + ' - ' + self._destination
+        #self._stop_name = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['TimingPointName']
 
-        if self._transport_type == "TRAM":
+        if self._transport_type == "Tram":
             self._icon = 'mdi:train'
-        if self._transport_type == "BUS":
+        if self._transport_type == "Bus":
             self._icon = 'mdi:bus'
-        if self._transport_type == "METRO":
+        if self._transport_type == "Metro":
             self._icon = 'mdi:subway-variant'
 
 class OvApiData:
@@ -132,15 +164,16 @@ class OvApiData:
             response = http.client.HTTPConnection(self._resource)
             response.request("GET", "/stopareacode/" + self._stop_code, headers = self._headers)
             result = response.getresponse()
-            string = result.read().decode('utf-8')
-            self._result = json.loads(string)
+            #string = result.read().decode('utf-8')
+            self._result = result.read().decode('utf-8')
+            #self._result = json.loads(string)
             #self.result = result.read().decode('utf-8')
             #self.result = json.loads(result.read())
             #self._result = json.dumps(result)
-            _LOGGER.warning(self._result)
+            #_LOGGER.warning(self._result)
             #self.success = True
         except:
             _LOGGER.error("Impossible to get data from OvApi")
             self._result = "Impossible to get data from OvApi"
 
-        return self._result
+        #return self._result
