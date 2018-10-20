@@ -97,16 +97,17 @@ class OvApiSensor(Entity):
         await self._json_data.async_update()
         self._json_data = self._json_data
 
-        data_object = self._json_data.result.read()
+        #data_object = self._json_data.result
 
-        _LOGGER.warning("Debug print object: " + data_object)
+        #_LOGGER.warning("Type object: " + type(self._json_data))
+        #string = self._json_data.read().decode('utf-8')
+        data = json.dumps(self._json_data.__dict__)
 
-        for line in data_object[self._stop_code][self._route_code]['Passes'].items():
-            self._destination = data_object[self._stop_code][self._route_code]['Passes'][line]['DestinationName50']
-            self._provider = data_object[self._stop_code][self._route_code]['Passes'][line]['DataOwnerCode']
-            self._transport_type = data_object[self._stop_code][self._route_code]['Passes'][line]['TransportType'].title()
-            self._line_name = self._transport_type + ' ' + data_object[self._stop_code][self._route_code]['Passes'][line]['LinePublicNumber'] + ' - ' + self._destination
-            self._stop_name = data_object[self._stop_code][self._route_code]['Passes'][line]['TimingPointName']
+        self._destination = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['DestinationName50']
+        self._provider = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['DataOwnerCode']
+        self._transport_type = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['TransportType'].title()
+        self._line_name = self._transport_type + ' ' + next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['LinePublicNumber'] + ' - ' + self._destination
+        self._stop_name = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['TimingPointName']
 
         if self._transport_type == "TRAM":
             self._icon = 'mdi:train'
@@ -117,10 +118,10 @@ class OvApiSensor(Entity):
 
 class OvApiData:
     def __init__(self, stop_code):
-        self.resource = _RESOURCE
-        self.stop_code = stop_code
+        self._resource = _RESOURCE
+        self._stop_code = stop_code
         #self.result = None
-        self.headers = {
+        self._headers = {
             'cache-control': "no-cache",
             'accept': "application/json"
         }
@@ -128,15 +129,18 @@ class OvApiData:
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
         try:
-            response = http.client.HTTPConnection(self.resource)
-            response.request("GET", "/stopareacode/" + self.stop_code, headers = self.headers)
+            response = http.client.HTTPConnection(self._resource)
+            response.request("GET", "/stopareacode/" + self._stop_code, headers = self._headers)
             result = response.getresponse()
-            self.result = json.loads(result.read())
-            #self.response_data = json.dumps(result)
-            _LOGGER.warning(self.result)
+            string = result.read().decode('utf-8')
+            self._result = json.loads(string)
+            #self.result = result.read().decode('utf-8')
+            #self.result = json.loads(result.read())
+            #self._result = json.dumps(result)
+            _LOGGER.warning(self._result)
             #self.success = True
         except:
             _LOGGER.error("Impossible to get data from OvApi")
-            self.result = "Impossible to get data from OvApi"
+            self._result = "Impossible to get data from OvApi"
 
-        return self.result
+        return self._result
