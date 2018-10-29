@@ -2,6 +2,7 @@ from datetime import datetime
 import http.client
 import operator
 import json
+import itertools
 
 stop_code = '9505'
 route_code = '32009506'
@@ -28,26 +29,27 @@ for item in data[stop_code][route_code]['Passes'].values():
     line_name = transport_type + ' ' + item['LinePublicNumber'] + ' - ' + destination
     stop_name = item['TimingPointName']
 
-    #print(next(iter(data[stop_code][route_code]['Passes'].values())))
+#print(destination)
+#print(provider)
+#print(transport_type)
+#print(line_name)
+#print(stop_name)
 
-print(destination)
-print(provider)
-print(transport_type)
-print(line_name)
-print(stop_name)
 
 stops = []
 
-for stop in data[stop_code][route_code]['Passes']:
+for stop in itertools.islice(data[stop_code][route_code]['Passes'].values(), 5):
 
     item = {}
 
-    TargetDepartureTime  = datetime.strptime(data[stop_code][route_code]['Passes'][stop]['TargetDepartureTime'], date_format)
-    ExpectedArrivalTime  = datetime.strptime(data[stop_code][route_code]['Passes'][stop]['ExpectedDepartureTime'], date_format)
-    #print("TargetDepartureTime: " + str(TargetDepartureTime) + " | ExpectedArrivalTime: " + str(ExpectedArrivalTime))
+    TargetDepartureTime  = datetime.strptime(stop['TargetDepartureTime'], date_format)
+    ExpectedArrivalTime  = datetime.strptime(stop['ExpectedDepartureTime'], date_format)
+
+    #print(stop['TargetDepartureTime'])
+    #print(stop['ExpectedDepartureTime'])
+    #print("ExpectedArrivalTime: " + str(ExpectedArrivalTime) + " TargetDepartureTime: " + str(TargetDepartureTime))
 
     calculateDelay = ExpectedArrivalTime - TargetDepartureTime
-    #print("calculateDelay: " + str(calculateDelay))
 
     delay = str(round((calculateDelay.seconds) / 60))
 
@@ -58,8 +60,10 @@ for stop in data[stop_code][route_code]['Passes']:
 
 stops.sort(key=operator.itemgetter('TargetDepartureTime'))
 
-#print(stops)
+json_string = json.dumps(stops).replace(" ", "")
 
+
+print(json_string)
 
 
 

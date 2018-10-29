@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import logging, operator, json
+import logging, operator, json, itertools
 import http.client
 
 import voluptuous as vol
@@ -18,9 +18,11 @@ _RESOURCE = 'v0.ovapi.nl'
 
 CONF_STOP_CODE = 'stop_code'
 CONF_ROUTE_CODE = 'route_code'
+CONF_DATE_FORMAT = 'date_format'
 CONF_CREDITS = 'Data provided by v0.ovapi.nl'
 
 DEFAULT_NAME = 'Line info'
+DEFAULT_DATE_FORMAT = "%y-%m-%dT%H:%M:%S"
 
 ATTR_NAME = 'name'
 ATTR_STOP_CODE = 'stop_code'
@@ -39,6 +41,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
     vol.Optional(CONF_STOP_CODE, default=CONF_STOP_CODE): cv.string,
     vol.Optional(CONF_ROUTE_CODE, default=CONF_ROUTE_CODE): cv.string,
+    vol.Optional(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): cv.string,
 })
 
 async def async_setup_platform(
@@ -53,8 +56,6 @@ async def async_setup_platform(
     ovapi = OvApiData(stop_code)
 
     await ovapi.async_update()
-
-    #_LOGGER.warning(ovapi._result)
 
     if ovapi is None:
         raise PlatformNotReady
@@ -76,11 +77,12 @@ class OvApiSensor(Entity):
         self._transport_type = None
         self._line_name = None
         self._stop_name = None
+        self._state = None
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return "{} {}".format(self._name, "_stop_" + self._stop_code)
+        return "{} {}".format(self._name.strip(), "_stop_" + self._stop_code)
 
     @property
     def icon(self):
@@ -105,6 +107,10 @@ class OvApiSensor(Entity):
     @property
     def stop_name(self):
         return self._stop_name
+
+    @property
+    def state(self):
+        return self._state
 
     @property
     def device_state_attributes(self):
@@ -135,11 +141,26 @@ class OvApiSensor(Entity):
             self._line_name = self._transport_type + ' ' + item['LinePublicNumber'] + ' - ' + self._destination
             self._stop_name = item['TimingPointName']
 
-        #self._destination = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['DestinationName50']
-        #self._provider = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['DataOwnerCode']
-        #self._transport_type = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['TransportType'].title()
-        #self._line_name = self._transport_type + ' ' + next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['LinePublicNumber'] + ' - ' + self._destination
-        #self._stop_name = next(iter(data[self._stop_code][self._route_code]['Passes'].values()))['TimingPointName']
+        stops_list = []
+        for stop in itertools.islice(data[self._stop_code][self._route_code]['Passes'].values(), 5):
+
+            stops_item = {}
+
+            TargetDepartureTime  = datetime.strptime(stop['TargetDepartureTime'], "%Y-%m-%dT%H:%M:%S")
+            ExpectedArrivalTime  = datetime.strptime(stop['ExpectedDepartureTime'], "%Y-%m-%dT%H:%M:%S")
+
+            calculateDelay = ExpectedArrivalTime - TargetDepartureTime
+
+            delay = str(round((calculateDelay.seconds) / 60))
+
+            stops_item["TargetDepartureTime"] = str(TargetDepartureTime.time())[0:5]
+            stops_item["Delay"] = delay
+
+            stops_list.append(stops_item)
+
+        stops_list.sort(key=operator.itemgetter('TargetDepartureTime'))
+
+        self._state = json.dumps(stops_list).replace(" ", "")
 
         if self._transport_type == "Tram":
             self._icon = 'mdi:train'
@@ -152,7 +173,6 @@ class OvApiData:
     def __init__(self, stop_code):
         self._resource = _RESOURCE
         self._stop_code = stop_code
-        #self.result = None
         self._headers = {
             'cache-control': "no-cache",
             'accept': "application/json"
@@ -164,16 +184,7 @@ class OvApiData:
             response = http.client.HTTPConnection(self._resource)
             response.request("GET", "/stopareacode/" + self._stop_code, headers = self._headers)
             result = response.getresponse()
-            #string = result.read().decode('utf-8')
             self._result = result.read().decode('utf-8')
-            #self._result = json.loads(string)
-            #self.result = result.read().decode('utf-8')
-            #self.result = json.loads(result.read())
-            #self._result = json.dumps(result)
-            #_LOGGER.warning(self._result)
-            #self.success = True
         except:
             _LOGGER.error("Impossible to get data from OvApi")
             self._result = "Impossible to get data from OvApi"
-
-        #return self._result
