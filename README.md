@@ -20,7 +20,7 @@ I've used the building JSON parser from Firefox, the search input is on the top 
 
 - Search in the response with a keyword of the stop or the line you want, eg: kastelenring
 - The result:
-```
+```json
 9505:    <-- is the stop
   TimingPointName "Kastelenring"
 ```
@@ -33,6 +33,6 @@ I've used the building JSON parser from Firefox, the search input is on the top 
 - Note the route_code and the stop_code and place these values in the sensor configuration.
 
 ### Note and credits
-- [Petro](https://community.home-assistant.io/u/petro/summary) (for extensive help at coding the template)
-- [Robban](https://github.com/Kane610) - (a lot of basic help with the Python code)
-- [danito](https://github.com/danito/HA-Config/blob/master/custom_components/sensor/stib.py) (I started with his script, learned a lot of it)
+- [Petro](https://community.home-assistant.io/u/petro/summary) - For extensive help at coding the template.
+- [Robban](https://github.com/Kane610) - A lot of basic help with the Python code.
+- [Danito](https://github.com/danito/HA-Config/blob/master/custom_components/sensor/stib.py) - I started with his script, learned a lot of it)
