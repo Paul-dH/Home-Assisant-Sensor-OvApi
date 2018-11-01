@@ -13,7 +13,7 @@ This example uses only the state of the sensor, this contains only the first upc
 
 ![Example 1 Sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/img/screen-1.png)
 
-### Sensor configuration
+#### Sensor configuration
 
  ```yaml
  sensor:
@@ -23,7 +23,7 @@ This example uses only the state of the sensor, this contains only the first upc
      route_code: '32009505'
  ```
 
-### Group configuration
+#### Group configuration
 
 ```yaml
   public_transport_plain:
@@ -37,9 +37,9 @@ This example uses only the state of the sensor, this contains only the first upc
 This example creates 5 sensors that can be displayed in a group.
 
 
-![Example 1 Sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/img/screen-2.png)
+![Example 2 Sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/img/screen-2.png)
 
-### Sensor configuration:
+#### Sensor configuration:
 
 ```yaml
 sensor:
@@ -116,7 +116,7 @@ sensor:
           {%- endif %}
 ```
 
-### Group configuration
+#### Group configuration
 ```yaml
 public_transport:
   name: Departures Tram 6
