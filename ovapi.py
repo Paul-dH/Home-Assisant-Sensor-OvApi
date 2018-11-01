@@ -5,7 +5,7 @@ import http.client
 import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import (CONF_NAME)
+from homeassistant.const import (CONF_NAME, STATE_UNKNOWN)
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.entity import Entity
@@ -33,9 +33,13 @@ ATTR_PROVIDER = 'provider'
 ATTR_TRANSPORT_TYPE = 'transport_type'
 ATTR_LINE_NAME = 'line_name'
 ATTR_STOP_NAME = 'stop_name'
+ATTR_DEPARTURE = 'departure'
+ATTR_DELAY = 'delay'
+ATTR_DEPARTURES = 'departures'
+ATTR_UPDATE_CYCLE = 'update_cycle'
 ATTR_CREDITS = 'credits'
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=15)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
@@ -77,6 +81,9 @@ class OvApiSensor(Entity):
         self._transport_type = None
         self._line_name = None
         self._stop_name = None
+        self._departure = None
+        self._delay = None
+        self._departures = None
         self._state = None
 
     @property
@@ -109,8 +116,29 @@ class OvApiSensor(Entity):
         return self._stop_name
 
     @property
+    def departure(self):
+        return self._departure
+
+
+    @property
+    def delay(self):
+        return self._delay
+
+    @property
+    def departures(self):
+        return self._departures
+
+    @property
     def state(self):
         return self._state
+        if self._departures is not None:
+            if self._departures[0]['Delay'] == '0':
+                state_delay = ''
+            else:
+                state_delay = ", Delay: " + self._departures[0]['Delay']
+            return self._departures[0]['TargetDepartureTime'] + state_delay
+        else:
+            return STATE_UNKNOWN
 
     @property
     def device_state_attributes(self):
@@ -125,6 +153,10 @@ class OvApiSensor(Entity):
             ATTR_TRANSPORT_TYPE: self._transport_type,
             ATTR_LINE_NAME: self._line_name,
             ATTR_STOP_NAME: self._stop_name,
+            ATTR_DEPARTURE: self._departure,
+            ATTR_DELAY: self._delay,
+            ATTR_DEPARTURES: self._departures,
+            ATTR_UPDATE_CYCLE: str(MIN_TIME_BETWEEN_UPDATES.seconds) + ' seconds',
             ATTR_CREDITS: CONF_CREDITS
         }
 
@@ -160,7 +192,19 @@ class OvApiSensor(Entity):
 
         stops_list.sort(key=operator.itemgetter('TargetDepartureTime'))
 
-        self._state = json.dumps(stops_list).replace(" ", "")
+        if data is None:
+            self._departure = STATE_UNKNOWN
+            self._delay = STATE_UNKNOWN
+            self._departures = STATE_UNKNOWN
+            self._state = STATE_UNKNOWN
+        else:
+            self._departure = str(stops_list[0]["TargetDepartureTime"])
+            self._delay = str(stops_list[0]["Delay"])
+            self._departures = stops_list
+            if self._delay == '0':
+                self._state = self._departure
+            else:
+                self._state = self._departure + " - Delay: " + self._delay + " min"
 
         if self._transport_type == "Tram":
             self._icon = 'mdi:train'
