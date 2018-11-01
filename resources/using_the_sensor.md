@@ -10,7 +10,7 @@ There are multiple options for displaying the data collected by the sensor, I'll
 
 This example uses only the state of the sensor, this contains only the first upcoming departure:
 
-Result:
+
 ![Example 1 Sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/img/screen-1.png)
 
 ### Sensor configuration
@@ -36,7 +36,7 @@ Result:
 
 This example creates 5 sensors that can be displayed in a group.
 
-Result:
+
 ![Example 1 Sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/img/screen-2.png)
 
 ### Sensor configuration:
