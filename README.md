@@ -13,10 +13,10 @@ sensor:
     stop_code: '9505'
     route_code: '32009505'
 ```
-Above example wil only show the first upcomming departure, for more options please see: [Using the sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/resources/using_the_sensor.md)
+Above example wil only show the first upcomming departure, for more options please see: [Using the sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/using_the_sensor.md)
 
 ### To find the stop_code (stopareacode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/stopareacode)
-> I've used the building JSON parser from Firefox, the search input is on the top right.
+I've used the building JSON parser from Firefox, the search input is on the top right.
 
 - Search in the response with a keyword of the stop or the line you want, eg: kastelenring
 - The result:
@@ -33,5 +33,6 @@ Above example wil only show the first upcomming departure, for more options plea
 - Note the route_code and the stop_code and place these values in the sensor configuration.
 
 ### Note and credits
-- Petro (for extensive help at coding the template)
-- Robban (a lot of basic help with the Python code)
+- [Petro](https://community.home-assistant.io/u/petro/summary) (for extensive help at coding the template)
+- [Robban](https://github.com/Kane610) - (a lot of basic help with the Python code)
+- [danito](https://github.com/danito/HA-Config/blob/master/custom_components/sensor/stib.py) (I started with his script, learned a lot of it)

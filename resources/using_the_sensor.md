@@ -1,12 +1,12 @@
 
-# Using the Sensor
+## Using the Sensor
 
 There are multiple options for displaying the data collected by the sensor, I'll describe two and let the rest to your imagination:
 - Standard usage (Example 1)
 - Card showing (max 5) a list of departure times and delay if applicable (Example 2)
 
 
-## Example 1
+### Example 1
 
 This example uses only the state of the sensor, this contains only the first upcoming departure:
 
@@ -32,7 +32,7 @@ Result:
       - sensor.tram_6__stop_9505
 ```
 
-## Example 2
+### Example 2
 
 This example creates 5 sensors that can be displayed in a group.
 
