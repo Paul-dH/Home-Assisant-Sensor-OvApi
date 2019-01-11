@@ -1,5 +1,8 @@
 from datetime import datetime, timedelta
-import logging, operator, json, itertools
+import logging
+import operator
+import json
+import itertools
 import http.client
 
 import voluptuous as vol
@@ -12,6 +15,8 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
+
+__version__ = '1.1.0'
 
 _LOGGER = logging.getLogger(__name__)
 _RESOURCE = 'v0.ovapi.nl'
@@ -48,23 +53,23 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): cv.string,
 })
 
-async def async_setup_platform(
-        hass, config, async_add_entities, discovery_info=None):
+
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
 
     name = config.get(CONF_NAME)
     stop_code = config.get(CONF_STOP_CODE)
     route_code = config.get(CONF_ROUTE_CODE)
 
-    session = async_get_clientsession(hass)
+    async_get_clientsession(hass)
 
-    ovapi = OvApiData(stop_code)
+    ov_api = OvApiData(stop_code)
 
-    await ovapi.async_update()
+    await ov_api.async_update()
 
-    if ovapi is None:
+    if ov_api is None:
         raise PlatformNotReady
 
-    sensors = [OvApiSensor(ovapi, name, stop_code, route_code)]
+    sensors = [OvApiSensor(ov_api, name, stop_code, route_code)]
 
     async_add_entities(sensors, True)
 
@@ -89,7 +94,7 @@ class OvApiSensor(Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return "{} {}".format(self._name.strip(), "_stop_" + self._stop_code)
+        return self._name
 
     @property
     def icon(self):
@@ -119,7 +124,6 @@ class OvApiSensor(Entity):
     def departure(self):
         return self._departure
 
-
     @property
     def delay(self):
         return self._delay
@@ -131,14 +135,6 @@ class OvApiSensor(Entity):
     @property
     def state(self):
         return self._state
-        if self._departures is not None:
-            if self._departures[0]['Delay'] == '0':
-                state_delay = ''
-            else:
-                state_delay = ", Delay: " + self._departures[0]['Delay']
-            return self._departures[0]['TargetDepartureTime'] + state_delay
-        else:
-            return STATE_UNKNOWN
 
     @property
     def device_state_attributes(self):
@@ -164,7 +160,7 @@ class OvApiSensor(Entity):
         """Get the latest data from the OvApi."""
         await self._json_data.async_update()
 
-        data = json.loads(self._json_data._result)
+        data = json.loads(self._json_data.result)
 
         for item in data[self._stop_code][self._route_code]['Passes'].values():
             self._destination = item['DestinationName50']
@@ -175,22 +171,15 @@ class OvApiSensor(Entity):
 
         stops_list = []
         for stop in itertools.islice(data[self._stop_code][self._route_code]['Passes'].values(), 5):
-
             stops_item = {}
-
-            TargetDepartureTime  = datetime.strptime(stop['TargetDepartureTime'], "%Y-%m-%dT%H:%M:%S")
-            ExpectedArrivalTime  = datetime.strptime(stop['ExpectedDepartureTime'], "%Y-%m-%dT%H:%M:%S")
-
-            calculateDelay = ExpectedArrivalTime - TargetDepartureTime
-
-            delay = str(round((calculateDelay.seconds) / 60))
-
-            stops_item["TargetDepartureTime"] = str(TargetDepartureTime.time())[0:5]
+            target_departure_time = datetime.strptime(stop['TargetDepartureTime'], "%Y-%m-%dT%H:%M:%S")
+            expected_arrival_time = datetime.strptime(stop['ExpectedDepartureTime'], "%Y-%m-%dT%H:%M:%S")
+            calculate_delay = expected_arrival_time - target_departure_time
+            delay = round(calculate_delay.seconds / 60)
+            stops_item["TargetDepartureTime"] = target_departure_time.time()
+            stops_item["ExpectedArrivalTime"] = expected_arrival_time.time()
             stops_item["Delay"] = delay
-
             stops_list.append(stops_item)
-
-        stops_list.sort(key=operator.itemgetter('TargetDepartureTime'))
 
         if data is None:
             self._departure = STATE_UNKNOWN
@@ -198,13 +187,31 @@ class OvApiSensor(Entity):
             self._departures = STATE_UNKNOWN
             self._state = STATE_UNKNOWN
         else:
-            self._departure = str(stops_list[0]["TargetDepartureTime"])
-            self._delay = str(stops_list[0]["Delay"])
-            self._departures = stops_list
-            if self._delay == '0':
-                self._state = self._departure
+            if stops_list is None:
+                self._departure = STATE_UNKNOWN
+                self._delay = STATE_UNKNOWN
+                self._departures = STATE_UNKNOWN
+                self._state = STATE_UNKNOWN
             else:
-                self._state = self._departure + " - Delay: " + self._delay + " min"
+                stops_list.sort(key=operator.itemgetter('TargetDepartureTime'))
+                self._departure = stops_list[0]["TargetDepartureTime"].strftime('%H:%M')
+                self._delay = str(stops_list[0]["Delay"])
+
+                departure_list = []
+                next_stops_list = stops_list[1:]
+
+                for counter, stop in enumerate(next_stops_list):
+                    if next_stops_list[counter]["Delay"] == 0:
+                        departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
+                    else:
+                        departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') +
+                                              " + " + str(next_stops_list[counter]["Delay"]) + " min")
+                self._departures = departure_list
+
+                if stops_list[0]["Delay"] == 0:
+                    self._state = self._departure
+                else:
+                    self._state = stops_list[0]["ExpectedArrivalTime"].strftime('%H:%M')
 
         if self._transport_type == "Tram":
             self._icon = 'mdi:train'
@@ -213,10 +220,12 @@ class OvApiSensor(Entity):
         if self._transport_type == "Metro":
             self._icon = 'mdi:subway-variant'
 
+
 class OvApiData:
     def __init__(self, stop_code):
         self._resource = _RESOURCE
         self._stop_code = stop_code
+        self.result = ""
         self._headers = {
             'cache-control': "no-cache",
             'accept': "application/json"
@@ -228,7 +237,7 @@ class OvApiData:
             response = http.client.HTTPConnection(self._resource)
             response.request("GET", "/stopareacode/" + self._stop_code, headers = self._headers)
             result = response.getresponse()
-            self._result = result.read().decode('utf-8')
-        except:
+            self.result = result.read().decode('utf-8')
+        except http.client.HTTPException:
             _LOGGER.error("Impossible to get data from OvApi")
-            self._result = "Impossible to get data from OvApi"
+            self.result = "Impossible to get data from OvApi"
