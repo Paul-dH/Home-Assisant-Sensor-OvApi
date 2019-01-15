@@ -16,7 +16,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '1.3.0'
+__version__ = '1.4.0'
 
 _LOGGER = logging.getLogger(__name__)
 _RESOURCE = 'v0.ovapi.nl'
@@ -25,6 +25,7 @@ CONF_STOP_CODE = 'stop_code'
 CONF_TIMING_POINT_CODE = 'timing_point_code'
 CONF_ROUTE_CODE = 'route_code'
 CONF_SHOW_FUTURE_DEPARTURES = 'show_future_departures'
+CONF_LINE_FILTER = 'line_filter'
 CONF_DATE_FORMAT = 'date_format'
 CONF_CREDITS = 'Data provided by v0.ovapi.nl'
 
@@ -36,6 +37,7 @@ ATTR_NAME = 'name'
 ATTR_STOP_CODE = 'stop_code'
 ATTR_ROUTE_CODE = 'route_code'
 ATTR_TIMING_POINT_CODE = 'timing_point_code'
+ATTR_LINE_FILTER = 'line_filter'
 ATTR_ICON = 'icon'
 ATTR_DESTINATION = 'destination'
 ATTR_PROVIDER = 'provider'
@@ -55,6 +57,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_STOP_CODE, default=CONF_STOP_CODE): cv.string,
     vol.Optional(CONF_TIMING_POINT_CODE, default=CONF_TIMING_POINT_CODE): cv.string,
     vol.Optional(CONF_ROUTE_CODE, default=CONF_ROUTE_CODE): cv.string,
+    vol.Optional(CONF_LINE_FILTER, default=CONF_LINE_FILTER): cv.string,
     vol.Optional(CONF_SHOW_FUTURE_DEPARTURES, default=DEFAULT_SHOW_FUTURE_DEPARTURES): cv.positive_int,
     vol.Optional(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): cv.string,
 })
@@ -67,6 +70,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     timing_point_code = config.get(CONF_TIMING_POINT_CODE)
     route_code = config.get(CONF_ROUTE_CODE)
     future_departures = config.get(CONF_SHOW_FUTURE_DEPARTURES)
+    line_filter = config.get(CONF_LINE_FILTER)
 
     async_get_clientsession(hass)
 
@@ -81,21 +85,22 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     for counter in range(future_departures + 1):
         if counter == 0:
-            sensors.append(OvApiSensor(ov_api, name, stop_code, timing_point_code, route_code, counter))
+            sensors.append(OvApiSensor(ov_api, name, stop_code, timing_point_code, route_code, line_filter, counter))
         else:
             sensors.append(OvApiSensor(ov_api, (name + "_future_" + str(counter)), stop_code, timing_point_code,
-                                       route_code, counter))
+                                       route_code, line_filter, counter))
 
     async_add_entities(sensors, True)
 
 
 class OvApiSensor(Entity):
-    def __init__(self, ovapi, name, stop_code, timing_point_code, route_code, counter):
+    def __init__(self, ovapi, name, stop_code, timing_point_code, route_code, line_filter, counter):
         self._json_data = ovapi
         self._name = name
         self._stop_code = stop_code
         self._timing_point_code = timing_point_code
         self._route_code = route_code
+        self._line_filter = line_filter
         self._sensor_number = counter
         self._icon = None
         self._destination = None
@@ -156,12 +161,17 @@ class OvApiSensor(Entity):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
+        if self._line_filter == ATTR_LINE_FILTER:
+            filter = None
+        else:
+            filter = self._line_filter
         if self._sensor_number == 0:
             return{
                 ATTR_NAME: self._name,
                 ATTR_STOP_CODE: self._stop_code,
                 ATTR_TIMING_POINT_CODE: self._timing_point_code,
                 ATTR_ROUTE_CODE: self._route_code,
+                ATTR_LINE_FILTER: filter,
                 ATTR_ICON: self._icon,
                 ATTR_DESTINATION: self._destination,
                 ATTR_PROVIDER: self._provider,
@@ -180,6 +190,7 @@ class OvApiSensor(Entity):
                 ATTR_STOP_CODE: self._stop_code,
                 ATTR_TIMING_POINT_CODE: self._timing_point_code,
                 ATTR_ROUTE_CODE: self._route_code,
+                ATTR_LINE_FILTER: filter,
                 ATTR_ICON: self._icon,
                 ATTR_DESTINATION: self._destination,
                 ATTR_PROVIDER: self._provider,
@@ -201,32 +212,34 @@ class OvApiSensor(Entity):
 
         if self._stop_code != CONF_STOP_CODE and self._stop_code is not None:
             self._timing_point_code = None
-            stops = itertools.islice(data[self._stop_code][self._route_code]['Passes'].values(), 5)
+            stops = itertools.islice(data[self._stop_code][self._route_code]['Passes'].values(), 50)
         elif self._timing_point_code != CONF_TIMING_POINT_CODE and self._timing_point_code is not None:
             self._stop_code = None
-            stops = itertools.islice(data[self._timing_point_code]['Passes'].values(), 5)
+            stops = itertools.islice(data[self._timing_point_code]['Passes'].values(), 50)
         else:
             _LOGGER.error("Impossible to get data from OvApi, no stop code and no timing point code!")
 
         stops_list = []
         for stop in stops:
-            target_departure_time = datetime.strptime(stop['TargetDepartureTime'], "%Y-%m-%dT%H:%M:%S")
-            expected_arrival_time = datetime.strptime(stop['ExpectedDepartureTime'], "%Y-%m-%dT%H:%M:%S")
-            calculate_delay = expected_arrival_time - target_departure_time
-            delay = round(calculate_delay.seconds / 60)
+            if self._line_filter == ATTR_LINE_FILTER or stop['LinePublicNumber'] in self._line_filter:
+                target_departure_time = datetime.strptime(stop['TargetDepartureTime'], "%Y-%m-%dT%H:%M:%S")
+                expected_arrival_time = datetime.strptime(stop['ExpectedDepartureTime'], "%Y-%m-%dT%H:%M:%S")
+                calculate_delay = expected_arrival_time - target_departure_time
+                delay = round(calculate_delay.seconds / 60)
 
-            stops_item = {
-                "destination": stop['DestinationName50'],
-                "provider": stop['DataOwnerCode'],
-                "transport_type": stop['TransportType'].title(),
-                "line_name": stop['TransportType'].title() + ' ' + stop['LinePublicNumber'] + ' - ' +
-                             stop['DestinationName50'],
-                "stop_name": stop['TimingPointName'],
-                "TargetDepartureTime": target_departure_time.time(),
-                "ExpectedArrivalTime": expected_arrival_time.time(),
-                "Delay": delay
-            }
-            stops_list.append(stops_item)
+                stops_item = {
+                    "destination": stop['DestinationName50'],
+                    "provider": stop['DataOwnerCode'],
+                    "transport_type": stop['TransportType'].title(),
+                    "line_name": stop['TransportType'].title() + ' ' + stop['LinePublicNumber'] + ' - ' +
+                                 stop['DestinationName50'],
+                    "stop_name": stop['TimingPointName'],
+                    "TargetDepartureTime": target_departure_time.time(),
+                    "ExpectedArrivalTime": expected_arrival_time.time(),
+                    "Delay": delay
+                }
+
+                stops_list.append(stops_item)
 
         if data is None:
             self._departure = STATE_UNKNOWN
@@ -256,11 +269,12 @@ class OvApiSensor(Entity):
                     next_stops_list = stops_list[1:]
 
                     for counter, stop in enumerate(next_stops_list):
-                        if next_stops_list[counter]["Delay"] == 0:
-                            departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
-                        else:
-                            departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') +
-                                                  " + " + str(next_stops_list[counter]["Delay"]) + " min")
+                        if counter < 10:
+                            if next_stops_list[counter]["Delay"] == 0:
+                                departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
+                            else:
+                                departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') +
+                                                      " + " + str(next_stops_list[counter]["Delay"]) + " min")
                     self._departures = departure_list
 
                     if stops_list[self._sensor_number]["Delay"] == 0:
