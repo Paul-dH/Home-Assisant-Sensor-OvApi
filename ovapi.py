@@ -16,18 +16,20 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '1.1.0'
+__version__ = '1.2.1'
 
 _LOGGER = logging.getLogger(__name__)
 _RESOURCE = 'v0.ovapi.nl'
 
 CONF_STOP_CODE = 'stop_code'
 CONF_ROUTE_CODE = 'route_code'
+CONF_SHOW_FUTURE_DEPARTURES = 'show_future_departures'
 CONF_DATE_FORMAT = 'date_format'
 CONF_CREDITS = 'Data provided by v0.ovapi.nl'
 
 DEFAULT_NAME = 'Line info'
 DEFAULT_DATE_FORMAT = "%y-%m-%dT%H:%M:%S"
+DEFAULT_SHOW_FUTURE_DEPARTURES = 0
 
 ATTR_NAME = 'name'
 ATTR_STOP_CODE = 'stop_code'
@@ -50,6 +52,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
     vol.Optional(CONF_STOP_CODE, default=CONF_STOP_CODE): cv.string,
     vol.Optional(CONF_ROUTE_CODE, default=CONF_ROUTE_CODE): cv.string,
+    vol.Optional(CONF_SHOW_FUTURE_DEPARTURES, default=DEFAULT_SHOW_FUTURE_DEPARTURES): cv.positive_int,
     vol.Optional(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): cv.string,
 })
 
@@ -59,6 +62,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     name = config.get(CONF_NAME)
     stop_code = config.get(CONF_STOP_CODE)
     route_code = config.get(CONF_ROUTE_CODE)
+    future_departures = config.get(CONF_SHOW_FUTURE_DEPARTURES)
 
     async_get_clientsession(hass)
 
@@ -69,17 +73,24 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if ov_api is None:
         raise PlatformNotReady
 
-    sensors = [OvApiSensor(ov_api, name, stop_code, route_code)]
+    sensors = []
+
+    for counter in range(future_departures + 1):
+        if counter == 0:
+            sensors.append(OvApiSensor(ov_api, (name + "_future_" + str(counter + 1)), stop_code, route_code, counter))
+        else:
+            sensors.append(OvApiSensor(ov_api, (name + "_future_" + str(counter + 1)), stop_code, route_code, counter))
 
     async_add_entities(sensors, True)
 
 
 class OvApiSensor(Entity):
-    def __init__(self, ovapi, name, stop_code, route_code):
+    def __init__(self, ovapi, name, stop_code, route_code, counter):
         self._json_data = ovapi
         self._name = name
         self._stop_code = stop_code
         self._route_code = route_code
+        self._sensor_number = counter
         self._icon = None
         self._destination = None
         self._provider = None
@@ -139,7 +150,8 @@ class OvApiSensor(Entity):
     @property
     def device_state_attributes(self):
         """Return the state attributes."""
-        return{
+        if self._sensor_number == 0:
+            return{
             ATTR_NAME: self._name,
             ATTR_STOP_CODE: self._stop_code,
             ATTR_ROUTE_CODE: self._route_code,
@@ -155,7 +167,22 @@ class OvApiSensor(Entity):
             ATTR_UPDATE_CYCLE: str(MIN_TIME_BETWEEN_UPDATES.seconds) + ' seconds',
             ATTR_CREDITS: CONF_CREDITS
         }
-
+        else:
+            return {
+                ATTR_NAME: self._name,
+                ATTR_STOP_CODE: self._stop_code,
+                ATTR_ROUTE_CODE: self._route_code,
+                ATTR_ICON: self._icon,
+                ATTR_DESTINATION: self._destination,
+                ATTR_PROVIDER: self._provider,
+                ATTR_TRANSPORT_TYPE: self._transport_type,
+                ATTR_LINE_NAME: self._line_name,
+                ATTR_STOP_NAME: self._stop_name,
+                ATTR_DEPARTURE: self._departure,
+                ATTR_DELAY: self._delay,
+                ATTR_UPDATE_CYCLE: str(MIN_TIME_BETWEEN_UPDATES.seconds) + ' seconds',
+                ATTR_CREDITS: CONF_CREDITS
+            }
     async def async_update(self):
         """Get the latest data from the OvApi."""
         await self._json_data.async_update()
@@ -187,31 +214,37 @@ class OvApiSensor(Entity):
             self._departures = STATE_UNKNOWN
             self._state = STATE_UNKNOWN
         else:
-            if stops_list is None:
+            if self._sensor_number >= len(stops_list):
                 self._departure = STATE_UNKNOWN
                 self._delay = STATE_UNKNOWN
                 self._departures = STATE_UNKNOWN
                 self._state = STATE_UNKNOWN
             else:
                 stops_list.sort(key=operator.itemgetter('TargetDepartureTime'))
-                self._departure = stops_list[0]["TargetDepartureTime"].strftime('%H:%M')
-                self._delay = str(stops_list[0]["Delay"])
+                self._departure = stops_list[self._sensor_number]["TargetDepartureTime"].strftime('%H:%M')
+                self._delay = str(stops_list[self._sensor_number]["Delay"])
 
-                departure_list = []
-                next_stops_list = stops_list[1:]
+                if self._sensor_number == 0:
+                    departure_list = []
+                    next_stops_list = stops_list[1:]
 
-                for counter, stop in enumerate(next_stops_list):
-                    if next_stops_list[counter]["Delay"] == 0:
-                        departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
+                    for counter, stop in enumerate(next_stops_list):
+                        if next_stops_list[counter]["Delay"] == 0:
+                            departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
+                        else:
+                            departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') +
+                                                  " + " + str(next_stops_list[counter]["Delay"]) + " min")
+                    self._departures = departure_list
+
+                    if stops_list[self._sensor_number]["Delay"] == 0:
+                        self._state = self._departure
                     else:
-                        departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') +
-                                              " + " + str(next_stops_list[counter]["Delay"]) + " min")
-                self._departures = departure_list
-
-                if stops_list[0]["Delay"] == 0:
-                    self._state = self._departure
+                        self._state = stops_list[self._sensor_number]["ExpectedArrivalTime"].strftime('%H:%M')
                 else:
-                    self._state = stops_list[0]["ExpectedArrivalTime"].strftime('%H:%M')
+                    if stops_list[self._sensor_number]["Delay"] == 0:
+                        self._state = self._departure
+                    else:
+                        self._state = self._departure + ' - Vertraging: %s min', self._delay
 
         if self._transport_type == "Tram":
             self._icon = 'mdi:train'
