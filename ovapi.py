@@ -16,7 +16,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '1.4.0'
+__version__ = '1.4.1'
 
 _LOGGER = logging.getLogger(__name__)
 _RESOURCE = 'v0.ovapi.nl'
@@ -94,8 +94,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
 
 class OvApiSensor(Entity):
-    def __init__(self, ovapi, name, stop_code, timing_point_code, route_code, line_filter, counter):
-        self._json_data = ovapi
+    def __init__(self, ov_api, name, stop_code, timing_point_code, route_code, line_filter, counter):
+        self._json_data = ov_api
         self._name = name
         self._stop_code = stop_code
         self._timing_point_code = timing_point_code
@@ -221,7 +221,7 @@ class OvApiSensor(Entity):
 
         stops_list = []
         for stop in stops:
-            if self._line_filter == ATTR_LINE_FILTER or stop['LinePublicNumber'] in self._line_filter:
+            if self._line_filter == ATTR_LINE_FILTER or stop['LinePublicNumber'] in self._line_filter.split(", "):
                 target_departure_time = datetime.strptime(stop['TargetDepartureTime'], "%Y-%m-%dT%H:%M:%S")
                 expected_arrival_time = datetime.strptime(stop['ExpectedDepartureTime'], "%Y-%m-%dT%H:%M:%S")
                 calculate_delay = expected_arrival_time - target_departure_time
@@ -269,7 +269,7 @@ class OvApiSensor(Entity):
                     next_stops_list = stops_list[1:]
 
                     for counter, stop in enumerate(next_stops_list):
-                        if counter < 10:
+                        if counter <= 11:
                             if next_stops_list[counter]["Delay"] == 0:
                                 departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
                             else:
