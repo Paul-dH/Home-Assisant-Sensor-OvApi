@@ -4,39 +4,24 @@ This is a sensor for Home Assistant and it will retrieve departure information o
 
 ### Install:
 - Copy the ovapi.py file to: /config/custom_components/sensor/
-- Add the content below to configuration.yaml:
+- Add the configuration to configuration.yaml, see the parameter descriptions below and refer to the examples.
 
-```yaml
-sensor:
-  - platform: ovapi
-    name: Tram_6
-    stop_code: 9505
-    route_code: 32009505
-```
+### Sensor options (there are two ways to use the sensor):
 
-### Sensor configuration options (there are two ways to use the sensor):
+**1. Using a stop_code:** *(Please refer to the instructions below)*
+- **- platform: ovapi** *(required)*
+- **name: line_6** *(the name of the sensor in HASS)*
+- **stop_code** *(int, e.g. 9505)* - This code is used to give the stop a sort of 'id'
+- **route_code** *(int, e.g. 32009505)* - A stop always has two routes, a route forth and back. This code configures the right route that you want of a public line destination.
 
-**Using a stop_code:** *(Please refer to the instructions below)*
-- **stop_code** - This code is used to give the stop a sort of 'id'
-- **route_code** - A stop always has two routes, a route forth and back. This code configures the right route that you want of a public line destination.
+**2. Using a Timing_Point_Code:** *(Please refer to the instructions below)*
+- **timing_point_code:** *(int, e.g. 10155690)*
 
-**Using a Timing_Point_Code:** *(Please refer to the instructions below)*
-- **timing_point_code**
-```yaml
-timing_point_code: 10155690
-```
+**Optional parameters:**
+- **show_future_departures:** *(int, max value is 50)* - The sensor always creates one sensor in Hass, this property can be configured with a value of 2-5. If this is configured, the component creates the configured number of sensors in HASS. These sensors contain future departments together with theire delay if applicable.
+- **line_filter** *(int, comma seperated)* - You might bump into the fact that there are multiple lines that use the same stop, with this property you can filter all passes with the line number that you want.
 
-**Optional options:**
-- **show_future_departures** *(max value is 50)* - The sensor always creates one sensor in Hass, this property can be configured with a value of 2-5. If this is configured, the component creates the configured number of sensors in HASS. These sensors contain future departments together with theire delay if applicable.
-```yaml
-show_future_departures: 6
-```
-- **line_filter** - You might bump into the fact that there are multiple lines that use the same stop, with this property you can filter all passes with the line number that you want.
-```yaml
-line_filter: 2, 6
-```
-
-1. Either one of these are required for the sensor to function!
+..* **Either one of these are required for the sensor to function!**
 
 
 ### To find the stop_code (stopareacode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/stopareacode)
