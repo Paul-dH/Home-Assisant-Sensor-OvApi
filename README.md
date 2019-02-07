@@ -57,6 +57,7 @@ I've used the building JSON parser from Firefox, the search input is on the top 
 - Note the route_code and the stop_code and place these values in the sensor configuration.
 
 ### To find the timing_point_code
+Enter the details here to find the timing_point_code...
 
 ### Note and credits
 - [Petro](https://community.home-assistant.io/u/petro/summary) - For extensive help at coding the template.
