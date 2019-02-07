@@ -10,15 +10,31 @@ This is a sensor for Home Assistant and it will retrieve departure information o
 sensor:
   - platform: ovapi
     name: Tram_6
-    stop_code: '9505'
-    route_code: '32009505'
+    stop_code: 9505
+    route_code: 32009505
 ```
-Sensor configuration options
-- **stop_code** *(Required, See 1)*
-- **timing_point_code** *(Required, See 1)*
-- **route_code** - A stop always has two routes, a route forth and back. With this code you can configure the route destination.
-- **show_future_departures** *(Optional)* - The sensor always creates one sensor in Hass, this property can be configured with a value of 2-5. If configured the component will create the number of sensors configured here. These sensors contain future departments together with theire delay if applicable.
-- **line_filter** *(Optional)* - You might bump into the fact that there are multiple lines are traveling trought your targeted stop, with this property you can filter all passes with the line number you want.
+
+### Sensor configuration options (there are two ways to use the sensor):
+
+**Using a stop_code:** *(Please refer to the instructions below)*
+- **stop_code** - This code is used to give the stop a sort of 'id'
+- **route_code** - A stop always has two routes, a route forth and back. This code configures the right route that you want of a public line destination.
+
+**Using a Timing_Point_Code:** *(Please refer to the instructions below)*
+- **timing_point_code**
+```yaml
+timing_point_code: 10155690
+```
+
+**Optional options:**
+- **show_future_departures** *(max value is 50)* - The sensor always creates one sensor in Hass, this property can be configured with a value of 2-5. If this is configured, the component creates the configured number of sensors in HASS. These sensors contain future departments together with theire delay if applicable.
+```yaml
+show_future_departures: 6
+```
+- **line_filter** - You might bump into the fact that there are multiple lines that use the same stop, with this property you can filter all passes with the line number that you want.
+```yaml
+line_filter: 2, 6
+```
 
 1. Either one of these are required for the sensor to function!
 
@@ -39,6 +55,8 @@ I've used the building JSON parser from Firefox, the search input is on the top 
 - Open one of the stops
 - Look for the key 'DestinationName50', this should hold the destination that you want. If this is the wrong way, then you should close the JSON output and open the other route code key.
 - Note the route_code and the stop_code and place these values in the sensor configuration.
+
+### To find the timing_point_code
 
 ### Note and credits
 - [Petro](https://community.home-assistant.io/u/petro/summary) - For extensive help at coding the template.
