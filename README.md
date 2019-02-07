@@ -2,6 +2,9 @@
 
 This is a sensor for Home Assistant and it will retrieve departure information of a particular stop. The sensor returns a list of departure times and the reported delay.
 
+![Alt text](https://github.com/IIIdefconIII/Home-Assisant-Sensor-OvApi/blob/master/2019-02-07_21-51-10.png?raw=true "Title")
+
+
 ### Install:
 - Copy the ovapi.py file to: /config/custom_components/sensor/
 - Add the content below to configuration.yaml:
