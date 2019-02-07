@@ -9,19 +9,21 @@ This is a sensor for Home Assistant and it will retrieve departure information o
 ### Sensor options (there are two ways to use the sensor):
 
 **1. Using a stop_code:** *(Please refer to the instructions below)*
-- **- platform: ovapi** *(required)*
-- **name: line_6** *(the name of the sensor in HASS)*
-- **stop_code** *(int, e.g. 9505)* - This code is used to give the stop a sort of 'id'
+- **platform: ovapi** *(required)* - The name of the sensor component.
+- **name: line_6** - The name of the sensor in HASS
+- **stop_code** *(int, e.g. 9505)* - A code created by the transport to identify the stop.
 - **route_code** *(int, e.g. 32009505)* - A stop always has two routes, a route forth and back. This code configures the right route that you want of a public line destination.
 
 **2. Using a Timing_Point_Code:** *(Please refer to the instructions below)*
-- **timing_point_code:** *(int, e.g. 10155690)*
+- **platform: ovapi** *(required)* - The name of the sensor component.
+- **name: line_6** - The name of the sensor in HASS
+- **timing_point_code:** *(int, e.g. 10155690)* - A code created by the transport to identify the stop.
+
+**Either one of these are required for the sensor to function!**
 
 **Optional parameters:**
 - **show_future_departures:** *(int, max value is 50)* - The sensor always creates one sensor in Hass, this property can be configured with a value of 2-5. If this is configured, the component creates the configured number of sensors in HASS. These sensors contain future departments together with theire delay if applicable.
 - **line_filter** *(int, comma seperated)* - You might bump into the fact that there are multiple lines that use the same stop, with this property you can filter all passes with the line number that you want.
-
-..* **Either one of these are required for the sensor to function!**
 
 
 ### To find the stop_code (stopareacode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/stopareacode)
@@ -41,14 +43,23 @@ I've used the building JSON parser from Firefox, the search input is on the top 
 - Look for the key 'DestinationName50', this should hold the destination that you want. If this is the wrong way, then you should close the JSON output and open the other route code key.
 - Note the route_code and the stop_code and place these values in the sensor configuration.
 
+
 ### To find the timing_point_code
 Enter the details here to find the timing_point_code...
 
+
+### Examples
+Create 1 sensor to show the next upcomming departure of a particular line
+```yaml
+- platform: ovapi
+  name: Tram_6
+  stop_code: 9595
+  route_code: 32009505
+```
+
+
 ### Note and credits
-- [Petro](https://community.home-assistant.io/u/petro/summary) - For extensive help at coding the template.
+- [Petro](https://community.home-assistant.io/u/petro/summary) - For extensive help at coding the sensor templates.
 - [Robban](https://github.com/Kane610) - A lot of basic help with the Python code.
 - [Danito](https://github.com/danito/HA-Config/blob/master/custom_components/sensor/stib.py) - I started with his script, learned a lot of it)
 - [pippyn](https://github.com/pippyn) - Huge contributions and a lot of bugfixes, thanks mate!
-
-Above example wil only show the first upcomming departure, for more options please see: [Using the sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/using_the_sensor.md)
-

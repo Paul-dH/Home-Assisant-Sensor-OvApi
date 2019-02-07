@@ -1,5 +1,5 @@
 
-## Using the Sensor
+## Using the Sensor (Depricated, this was for the initial version!!)
 
 There are multiple options for displaying the data collected by the sensor, I'll describe two and let the rest to your imagination:
 - Standard usage (Example 1)
