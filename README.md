@@ -24,7 +24,7 @@ You can see here that RET_48_1 is the number we are searching for.
 Now we can find the right TimingPointCode, first we will request all the tram/bus stops for the line number, go to: refer to the JSON response of: v0.ovapi.nl/line/RET_48_1 (replace with youre id)
 
 Use Search and find the bus stop name youre leaving from, in my example it is, Beverwaardseweg.<br />
-```:{"Longitude":4.5733643,"Latitude":51.898308,"TimingPointTown":"Rotterdam","TimingPointName":"Limbrichthoek","TimingPointCode":"31000226","StopAreaCode":"406","TimingPointWheelChairAccessible":"ACCESSIBLE","TimingPointVisualAccessible":"NOTACCESSIBLE","IsTimingStop":false,"UserStopOrderNumber":2},"3":```
+```{"Longitude":4.5733643,"Latitude":51.898308,"TimingPointTown":"Rotterdam","TimingPointName":"Limbrichthoek","TimingPointCode":"31000226","StopAreaCode":"406","TimingPointWheelChairAccessible":"ACCESSIBLE","TimingPointVisualAccessible":"NOTACCESSIBLE","IsTimingStop":false,"UserStopOrderNumber":2},"3":```
 
 In this line you will find the TimingPointCode ("TimingPointCode":"31000226")
 
