@@ -10,27 +10,94 @@ This is a sensor for Home Assistant and it will retrieve departure information o
 sensor:
   - platform: ovapi
     name: Tram_6
-    stop_code: '9505'
-    route_code: '32009505'
+    timing_point_code: '31000226'
+    show_future_departures: 4
+#    line_filter: 2, 6
 ```
-Above example wil only show the first upcomming departure, for more options please see: [Using the sensor](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/using_the_sensor.md)
 
-### To find the stop_code (stopareacode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/stopareacode)
-I've used the building JSON parser from Firefox, the search input is on the top right.
+### To find the timing_point_code refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/stopareacode)
+Search youre bus or tram line number, LinePublicNumber":"23" where 23 correspondents to the actual tram/bus number.
+Then copy the whole entry to a temp text file:
+```"RET_48_1":{"LineWheelchairAccessible":"UNKNOWN","TransportType":"TRAM","DestinationName50":"Marconiplein","DataOwnerCode":"RET","DestinationCode":"TMCP---","LinePublicNumber":"23","LinePlanningNumber":"48","LineName":"Beverwaard - Marconiplein","LineDirection":1}"```
 
-- Search in the response with a keyword of the stop or the line you want, eg: kastelenring
-- The result:
-```json
-9505:    <-- is the stop
-  TimingPointName "Kastelenring"
-```
-- Browse the following Url: http://v0.ovapi.nl/stopareacode/9505 (replace 9505 with the code you've found!)
-- Minimize the child keys beneath your stop_code, two keys should be returned (these are the route fourth and back).
-- Open one of the keys and browse to stop_code/route_code/Passes
-- This key holds all the stops currently available (this updates frequently)
-- Open one of the stops
-- Look for the key 'DestinationName50', this should hold the destination that you want. If this is the wrong way, then you should close the JSON output and open the other route code key.
-- Note the route_code and the stop_code and place these values in the sensor configuration.
+You can see here that RET_48_1 is the number we are searching for.
+Now we can find the right TimingPointCode, first we will request all the tram/bus stops for the line number, go to: refer to the JSON response of: v0.ovapi.nl/line/RET_48_1 (replace with youre id)
+
+Use Search and find the bus stop name youre leaving from, in my example it is, Beverwaardseweg.
+```:{"Longitude":4.5733643,"Latitude":51.898308,"TimingPointTown":"Rotterdam","TimingPointName":"Limbrichthoek","TimingPointCode":"31000226","StopAreaCode":"406","TimingPointWheelChairAccessible":"ACCESSIBLE","TimingPointVisualAccessible":"NOTACCESSIBLE","IsTimingStop":false,"UserStopOrderNumber":2},"3":```
+
+In this line you will find the TimingPointCode ("TimingPointCode":"31000226")
+
+Save that TimingPointCode for creating the sensor.
+
+```Sensor example```
+<pre>
+cards:
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.tram_23
+          icon: 'mdi:tram'
+        - entity: sensor.tram_23_future_1
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_2
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_3
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_4
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Tram 23
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/tram.png?v=0.5)
+    type: 'custom:card-modder'
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.bus_140
+          icon: 'mdi:bus'
+        - entity: sensor.bus_140_future_1
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_2
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_3
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_4
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Bus 140
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/bus1.png?v=0.2)
+    type: 'custom:card-modder'
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.bus_183
+          icon: 'mdi:bus'
+        - entity: sensor.bus_183_future_1
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_2
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_3
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_4
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Bus 183
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/bus2.png?v=0.3)
+    type: 'custom:card-modder'
+type: vertical-stack
+</pre>
 
 ### Note and credits
 - [Petro](https://community.home-assistant.io/u/petro/summary) - For extensive help at coding the template.
