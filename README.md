@@ -2,6 +2,8 @@
 
 This is a sensor for Home Assistant and it will retrieve departure information of a particular stop. The sensor returns the first upcomming departure.
 
+![Lovelace Screenshot](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/img/preview.png)
+
 ### Install:
 - Copy the ovapi.py file to: /config/custom_components/sensor/
 - Add the configuration to configuration.yaml, see the parameter descriptions below and refer to the examples.
@@ -44,17 +46,118 @@ I've used the building JSON parser from Firefox, the search input is on the top 
 - Note the route_code and the stop_code and place these values in the sensor configuration.
 
 
-### To find the timing_point_code
-Enter the details here to find the timing_point_code...
+### To find the timing_point_code (TimingPointCode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/line)
+I've used the building JSON parser from Firefox, the search input is on the top right.
 
+- Search in the response with a keyword of the destination of the line, eg: Leyenburg
+- The result of this should be a list of line identifiers, expand them and look for the one that has the correct value in `DestinationName50`. Copy the line identifier, e.g. HTM_6_2.
+- Next, open the url: [http://v0.ovapi.nl/line/HTM_6_2](http://v0.ovapi.nl/line/HTM_6_2), this page lists all stops of the line. Search for your stop name, e.g. kastelenring.
+- Find the TimingPointCode and use this as value in the sensor configuration.
 
-### Examples
+### Sensor configuration examples
 Create 1 sensor to show the next upcomming departure of a particular line
 ```yaml
-- platform: ovapi
-  name: Tram_6
-  stop_code: 9595
-  route_code: 32009505
+sensor:
+  - platform: ovapi
+    name: Tram_6
+    stop_code: 9595
+    route_code: 32009505
+```
+
+Create a base sensor and 4 future sensors, this way you can display the time of 5 departures in total
+```yaml
+sensor:
+  - platform: ovapi
+    name: Tram_6
+    stop_code: 9595
+    route_code: 32009505
+    show_future_departures: 4
+```
+Create a sensor using a timing_point_code and no extra's
+```yaml
+sensor:
+  - platform: ovapi
+    name: Tram_6
+    timing_point_code: 31000226
+```
+Create 5 sensors using a timing_point_code and a line_filter, because there are multiple lines on that particular stop.
+```yaml
+sensor:
+  - platform: ovapi
+    name: Tram_6
+    timing_point_code: 31000226
+    line_filter: 2, 6
+    show_future_departures: 4
+```
+
+
+### Lovelace card example:
+```yaml
+cards:
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.tram_23
+          icon: 'mdi:tram'
+        - entity: sensor.tram_23_future_1
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_2
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_3
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_4
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Tram 23
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/tram.png?v=0.5)
+    type: 'custom:card-modder'
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.bus_140
+          icon: 'mdi:bus'
+        - entity: sensor.bus_140_future_1
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_2
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_3
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_4
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Bus 140
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/bus1.png?v=0.2)
+    type: 'custom:card-modder'
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.bus_183
+          icon: 'mdi:bus'
+        - entity: sensor.bus_183_future_1
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_2
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_3
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_4
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Bus 183
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/bus2.png?v=0.3)
+    type: 'custom:card-modder'
+type: vertical-stack
 ```
 
 
@@ -63,3 +166,4 @@ Create 1 sensor to show the next upcomming departure of a particular line
 - [Robban](https://github.com/Kane610) - A lot of basic help with the Python code.
 - [Danito](https://github.com/danito/HA-Config/blob/master/custom_components/sensor/stib.py) - I started with his script, learned a lot of it)
 - [pippyn](https://github.com/pippyn) - Huge contributions and a lot of bugfixes, thanks mate!
+- rolfberkenbosch - For a start of the timing_point_code documentation.
