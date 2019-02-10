@@ -167,3 +167,6 @@ type: vertical-stack
 - [Danito](https://github.com/danito/HA-Config/blob/master/custom_components/sensor/stib.py) - I started with his script, learned a lot of it)
 - [pippyn](https://github.com/pippyn) - Huge contributions and a lot of bugfixes, thanks mate!
 - rolfberkenbosch - For a start of the timing_point_code documentation.
+
+### Custom updater:
+- https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/custom_components.json
