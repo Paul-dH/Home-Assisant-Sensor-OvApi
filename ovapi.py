@@ -274,7 +274,7 @@ class OvApiSensor(Entity):
                                 departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
                             else:
                                 departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') +
-                                                      " + " + str(next_stops_list[counter]["Delay"]) + " min")
+                                                      " + " + str(next_stops_list[counter]["Delay"]) + "m")
                     self._departures = departure_list
 
                     if stops_list[self._sensor_number]["Delay"] == 0:
@@ -285,7 +285,7 @@ class OvApiSensor(Entity):
                     if stops_list[self._sensor_number]["Delay"] == 0:
                         self._state = self._departure
                     else:
-                        self._state = self._departure + ' - Vertraging: ' + str(self._delay) + ' min'
+                        self._state = self._departure + ' +' + str(self._delay) + 'm'
 
         if self._transport_type == "Tram":
             self._icon = 'mdi:train'
