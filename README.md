@@ -167,6 +167,7 @@ type: vertical-stack
 - [Danito](https://github.com/danito/HA-Config/blob/master/custom_components/sensor/stib.py) - I started with his script, learned a lot of it)
 - [pippyn](https://github.com/pippyn) - Huge contributions and a lot of bugfixes, thanks mate!
 - rolfberkenbosch - For a start of the timing_point_code documentation.
+- [IIIdefconIII](https://github.com/IIIdefconIII/) - Some minor contributions to add the custom updater and updating the readme.
 
 ### Custom updater:
 ```
