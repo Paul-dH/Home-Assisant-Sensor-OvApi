@@ -169,4 +169,11 @@ type: vertical-stack
 - rolfberkenbosch - For a start of the timing_point_code documentation.
 
 ### Custom updater:
-- https://raw.githubusercontent.com/Paul-dH/Home-Assisant-Sensor-OvApi/master/custom_components.json
+```
+custom_updater:
+  track:
+    - components
+  component_urls:
+    - https://raw.githubusercontent.com/Paul-dH/Home-Assisant-Sensor-OvApi/master/custom_components.json
+```
+
