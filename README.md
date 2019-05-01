@@ -5,7 +5,7 @@ This is a sensor for Home Assistant and it will retrieve departure information o
 ![Lovelace Screenshot](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/blob/master/resources/img/preview.png)
 
 ### Install:
-- Copy the ovapi.py file to: /config/custom_components/sensor/
+- Create the followinf folder structure: /config/custom_components/ovapi and place these [3 files](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/tree/master/custom_components/ovapi) there.
 - Add the configuration to configuration.yaml, see the parameter descriptions below and refer to the examples.
 
 ### Sensor options (there are two ways to use the sensor):
