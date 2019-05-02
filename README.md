@@ -65,191 +65,72 @@ sensor:
 ```
 
 Create a base sensor and 4 future sensors, this way you can display the time of 5 departures in total
-```yaml
-sensor:
-  - platform: ovapi
-    name: Tram_6
-    stop_code: 9595
-    route_code: 32009505
-    show_future_departures: 4
 ```
-Create a sensor using a timing_point_code and no extra's
-```yaml
-sensor:
-  - platform: ovapi
-    name: Tram_6
-    timing_point_code: 31000226
-```
-Create 5 sensors using a timing_point_code and a line_filter, because there are multiple lines on that particular stop.
-```yaml
-sensor:
-  - platform: ovapi
-    name: Tram_6
-    timing_point_code: 31000226
-    line_filter: 2, 6
-    show_future_departures: 4
-```
-
-
-### Lovelace card example:
-```
-############################################
-##            Public Transport            ##
-############################################
-###### SENSORS -----------------------------
-###### TRAM 23 -----------------------------
-sensor:
-  - platform: template
-    sensors:
-      tram_23_templated:
-        friendly_name: tram_23_templated
-        value_template: >-
-          {% if is_state('sensor.tram_23', 'unknown') %}
-          {% else %}
-            {{ states('sensor.tram_23') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      tram_23_future_1_templated:
-        friendly_name: tram_23_future_1_templated
-        value_template: >-
-          {% if is_state('sensor.tram_23_future_1', 'unknown') %}
-          {% else %}
-            {{ states('sensor.tram_23_future_1') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      tram_23_future_2_templated:
-        friendly_name: tram_23_future_2_templated
-        value_template: >-
-          {% if is_state('sensor.tram_23_future_2', 'unknown') %}
-          {% else %}
-            {{ states('sensor.tram_23_future_2') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      tram_23_future_3_templated:
-        friendly_name: tram_23_future_3_templated
-        value_template: >-
-          {% if is_state('sensor.tram_23_future_3', 'unknown') %}
-          {% else %}
-            {{ states('sensor.tram_23_future_3') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      tram_23_future_4_templated:
-        friendly_name: tram_23_future_4_templated
-        value_template: >-
-          {% if is_state('sensor.tram_23_future_4', 'unknown') %}
-          {% else %}
-            {{ states('sensor.tram_23_future_4') }}
-          {% endif %}
-
-###### BUS 140 -----------------------------
-  - platform: template
-    sensors:
-      bus_140_templated:
-        friendly_name: bus_140_templated
-        value_template: >-
-          {% if is_state('sensor.bus_140', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_140') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      bus_140_future_1_templated:
-        friendly_name: bus_140_future_1_templated
-        value_template: >-
-          {% if is_state('sensor.bus_140_future_1', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_140_future_1') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      bus_140_future_2_templated:
-        friendly_name: bus_140_future_2_templated
-        value_template: >-
-          {% if is_state('sensor.bus_140_future_2', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_140_future_2') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      bus_140_future_3_templated:
-        friendly_name: bus_140_future_3_templated
-        value_template: >-
-          {% if is_state('sensor.bus_140_future_3', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_140_future_3') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      bus_140_future_4_templated:
-        friendly_name: bus_140_future_4_templated
-        value_template: >-
-          {% if is_state('sensor.bus_140_future_4', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_140_future_4') }}
-          {% endif %}
-
-###### BUS 183 -----------------------------
-  - platform: template
-    sensors:
-      bus_183_templated:
-        friendly_name: bus_183_templated
-        value_template: >-
-          {% if is_state('sensor.bus_183', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_183') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      bus_183_future_1_templated:
-        friendly_name: bus_183_future_1_templated
-        value_template: >-
-          {% if is_state('sensor.bus_183_future_1', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_183_future_1') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      bus_183_future_2_templated:
-        friendly_name: bus_183_future_2_templated
-        value_template: >-
-          {% if is_state('sensor.bus_183_future_2', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_183_future_2') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      bus_183_future_3_templated:
-        friendly_name: bus_183_future_3_templated
-        value_template: >-
-          {% if is_state('sensor.bus_183_future_3', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_183_future_3') }}
-          {% endif %}
-
-  - platform: template
-    sensors:
-      bus_183_future_4_templated:
-        friendly_name: bus_183_future_4_templated
-        value_template: >-
-          {% if is_state('sensor.bus_183_future_4', 'unknown') %}
-          {% else %}
-            {{ states('sensor.bus_183_future_4') }}
-          {% endif %}
+cards:
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.tram_23_templated
+          icon: 'mdi:tram'
+        - entity: sensor.tram_23_future_1_templated
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_2_templated
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_3_templated
+          icon: 'mdi:x'
+        - entity: sensor.tram_23_future_4_templated
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Tram 23
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/images/tram.png?v=0.6)
+    type: 'custom:card-modder'
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.bus_140_templated
+          icon: 'mdi:bus'
+        - entity: sensor.bus_140_future_1_templated
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_2_templated
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_3_templated
+          icon: 'mdi:x'
+        - entity: sensor.bus_140_future_4_templated
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Bus 140
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/images/bus1.png?v=0.3)
+    type: 'custom:card-modder'
+  - card:
+      columns: 5
+      entities:
+        - entity: sensor.bus_183_templated
+          icon: 'mdi:bus'
+        - entity: sensor.bus_183_future_1_templated
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_2_templated
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_3_templated
+          icon: 'mdi:x'
+        - entity: sensor.bus_183_future_4_templated
+          icon: 'mdi:x'
+      show_header_toggle: false
+      show_name: false
+      title: Bus 83 / 183
+      type: glance
+    cards: null
+    style:
+      background-image: url(/local/images/bus2.png?v=0.1)
+    type: 'custom:card-modder'
+type: vertical-stack
 
 ```
 
