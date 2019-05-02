@@ -97,15 +97,15 @@ cards:
   - card:
       columns: 5
       entities:
-        - entity: sensor.tram_23
+        - entity: sensor.tram_23_templated
           icon: 'mdi:tram'
-        - entity: sensor.tram_23_future_1
+        - entity: sensor.tram_23_future_1_templated
           icon: 'mdi:x'
-        - entity: sensor.tram_23_future_2
+        - entity: sensor.tram_23_future_2_templated
           icon: 'mdi:x'
-        - entity: sensor.tram_23_future_3
+        - entity: sensor.tram_23_future_3_templated
           icon: 'mdi:x'
-        - entity: sensor.tram_23_future_4
+        - entity: sensor.tram_23_future_4_templated
           icon: 'mdi:x'
       show_header_toggle: false
       show_name: false
@@ -113,20 +113,20 @@ cards:
       type: glance
     cards: null
     style:
-      background-image: url(/local/tram.png?v=0.5)
+      background-image: url(/local/images/tram.png?v=0.6)
     type: 'custom:card-modder'
   - card:
       columns: 5
       entities:
-        - entity: sensor.bus_140
+        - entity: sensor.bus_140_templated
           icon: 'mdi:bus'
-        - entity: sensor.bus_140_future_1
+        - entity: sensor.bus_140_future_1_templated
           icon: 'mdi:x'
-        - entity: sensor.bus_140_future_2
+        - entity: sensor.bus_140_future_2_templated
           icon: 'mdi:x'
-        - entity: sensor.bus_140_future_3
+        - entity: sensor.bus_140_future_3_templated
           icon: 'mdi:x'
-        - entity: sensor.bus_140_future_4
+        - entity: sensor.bus_140_future_4_templated
           icon: 'mdi:x'
       show_header_toggle: false
       show_name: false
@@ -134,28 +134,28 @@ cards:
       type: glance
     cards: null
     style:
-      background-image: url(/local/bus1.png?v=0.2)
+      background-image: url(/local/images/bus1.png?v=0.3)
     type: 'custom:card-modder'
   - card:
       columns: 5
       entities:
-        - entity: sensor.bus_183
+        - entity: sensor.bus_183_templated
           icon: 'mdi:bus'
-        - entity: sensor.bus_183_future_1
+        - entity: sensor.bus_183_future_1_templated
           icon: 'mdi:x'
-        - entity: sensor.bus_183_future_2
+        - entity: sensor.bus_183_future_2_templated
           icon: 'mdi:x'
-        - entity: sensor.bus_183_future_3
+        - entity: sensor.bus_183_future_3_templated
           icon: 'mdi:x'
-        - entity: sensor.bus_183_future_4
+        - entity: sensor.bus_183_future_4_templated
           icon: 'mdi:x'
       show_header_toggle: false
       show_name: false
-      title: Bus 183
+      title: Bus 83 / 183
       type: glance
     cards: null
     style:
-      background-image: url(/local/bus2.png?v=0.3)
+      background-image: url(/local/images/bus2.png?v=0.1)
     type: 'custom:card-modder'
 type: vertical-stack
 ```
