@@ -92,72 +92,165 @@ sensor:
 
 
 ### Lovelace card example:
-```yaml
-cards:
-  - card:
-      columns: 5
-      entities:
-        - entity: sensor.tram_23
-          icon: 'mdi:tram'
-        - entity: sensor.tram_23_future_1
-          icon: 'mdi:x'
-        - entity: sensor.tram_23_future_2
-          icon: 'mdi:x'
-        - entity: sensor.tram_23_future_3
-          icon: 'mdi:x'
-        - entity: sensor.tram_23_future_4
-          icon: 'mdi:x'
-      show_header_toggle: false
-      show_name: false
-      title: Tram 23
-      type: glance
-    cards: null
-    style:
-      background-image: url(/local/tram.png?v=0.5)
-    type: 'custom:card-modder'
-  - card:
-      columns: 5
-      entities:
-        - entity: sensor.bus_140
-          icon: 'mdi:bus'
-        - entity: sensor.bus_140_future_1
-          icon: 'mdi:x'
-        - entity: sensor.bus_140_future_2
-          icon: 'mdi:x'
-        - entity: sensor.bus_140_future_3
-          icon: 'mdi:x'
-        - entity: sensor.bus_140_future_4
-          icon: 'mdi:x'
-      show_header_toggle: false
-      show_name: false
-      title: Bus 140
-      type: glance
-    cards: null
-    style:
-      background-image: url(/local/bus1.png?v=0.2)
-    type: 'custom:card-modder'
-  - card:
-      columns: 5
-      entities:
-        - entity: sensor.bus_183
-          icon: 'mdi:bus'
-        - entity: sensor.bus_183_future_1
-          icon: 'mdi:x'
-        - entity: sensor.bus_183_future_2
-          icon: 'mdi:x'
-        - entity: sensor.bus_183_future_3
-          icon: 'mdi:x'
-        - entity: sensor.bus_183_future_4
-          icon: 'mdi:x'
-      show_header_toggle: false
-      show_name: false
-      title: Bus 183
-      type: glance
-    cards: null
-    style:
-      background-image: url(/local/bus2.png?v=0.3)
-    type: 'custom:card-modder'
-type: vertical-stack
+```
+############################################
+##            Public Transport            ##
+############################################
+###### SENSORS -----------------------------
+###### TRAM 23 -----------------------------
+sensor:
+  - platform: template
+    sensors:
+      tram_23_templated:
+        friendly_name: tram_23_templated
+        value_template: >-
+          {% if is_state('sensor.tram_23', 'unknown') %}
+          {% else %}
+            {{ states('sensor.tram_23') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      tram_23_future_1_templated:
+        friendly_name: tram_23_future_1_templated
+        value_template: >-
+          {% if is_state('sensor.tram_23_future_1', 'unknown') %}
+          {% else %}
+            {{ states('sensor.tram_23_future_1') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      tram_23_future_2_templated:
+        friendly_name: tram_23_future_2_templated
+        value_template: >-
+          {% if is_state('sensor.tram_23_future_2', 'unknown') %}
+          {% else %}
+            {{ states('sensor.tram_23_future_2') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      tram_23_future_3_templated:
+        friendly_name: tram_23_future_3_templated
+        value_template: >-
+          {% if is_state('sensor.tram_23_future_3', 'unknown') %}
+          {% else %}
+            {{ states('sensor.tram_23_future_3') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      tram_23_future_4_templated:
+        friendly_name: tram_23_future_4_templated
+        value_template: >-
+          {% if is_state('sensor.tram_23_future_4', 'unknown') %}
+          {% else %}
+            {{ states('sensor.tram_23_future_4') }}
+          {% endif %}
+
+###### BUS 140 -----------------------------
+  - platform: template
+    sensors:
+      bus_140_templated:
+        friendly_name: bus_140_templated
+        value_template: >-
+          {% if is_state('sensor.bus_140', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_140') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      bus_140_future_1_templated:
+        friendly_name: bus_140_future_1_templated
+        value_template: >-
+          {% if is_state('sensor.bus_140_future_1', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_140_future_1') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      bus_140_future_2_templated:
+        friendly_name: bus_140_future_2_templated
+        value_template: >-
+          {% if is_state('sensor.bus_140_future_2', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_140_future_2') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      bus_140_future_3_templated:
+        friendly_name: bus_140_future_3_templated
+        value_template: >-
+          {% if is_state('sensor.bus_140_future_3', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_140_future_3') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      bus_140_future_4_templated:
+        friendly_name: bus_140_future_4_templated
+        value_template: >-
+          {% if is_state('sensor.bus_140_future_4', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_140_future_4') }}
+          {% endif %}
+
+###### BUS 183 -----------------------------
+  - platform: template
+    sensors:
+      bus_183_templated:
+        friendly_name: bus_183_templated
+        value_template: >-
+          {% if is_state('sensor.bus_183', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_183') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      bus_183_future_1_templated:
+        friendly_name: bus_183_future_1_templated
+        value_template: >-
+          {% if is_state('sensor.bus_183_future_1', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_183_future_1') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      bus_183_future_2_templated:
+        friendly_name: bus_183_future_2_templated
+        value_template: >-
+          {% if is_state('sensor.bus_183_future_2', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_183_future_2') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      bus_183_future_3_templated:
+        friendly_name: bus_183_future_3_templated
+        value_template: >-
+          {% if is_state('sensor.bus_183_future_3', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_183_future_3') }}
+          {% endif %}
+
+  - platform: template
+    sensors:
+      bus_183_future_4_templated:
+        friendly_name: bus_183_future_4_templated
+        value_template: >-
+          {% if is_state('sensor.bus_183_future_4', 'unknown') %}
+          {% else %}
+            {{ states('sensor.bus_183_future_4') }}
+          {% endif %}
+
 ```
 
 
