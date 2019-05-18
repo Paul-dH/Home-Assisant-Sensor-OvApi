@@ -1,7 +1,7 @@
 {
     "sensor.ovapi": {
-      "updated_at": "2019-01-16",
-      "version": "1.4.1",
+      "updated_at": "2019-05-18",
+      "version": "1.4.2",
       "local_location": "/custom_components/ovapi/sensor.py",
       "remote_location": "https://raw.githubusercontent.com/Paul-dH/Home-Assisant-Sensor-OvApi/master/ovapi.py",
       "visit_repo": "https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi",

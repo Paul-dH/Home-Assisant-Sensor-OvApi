@@ -16,7 +16,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '1.4.1'
+__version__ = '1.4.2'
 
 _LOGGER = logging.getLogger(__name__)
 _RESOURCE = 'v0.ovapi.nl'
@@ -63,7 +63,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 })
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+def setup_platform(hass, config, add_entities, discovery_info=None):
 
     name = config.get(CONF_NAME)
     stop_code = config.get(CONF_STOP_CODE)
@@ -72,11 +72,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     future_departures = config.get(CONF_SHOW_FUTURE_DEPARTURES)
     line_filter = config.get(CONF_LINE_FILTER)
 
-    async_get_clientsession(hass)
-
     ov_api = OvApiData(stop_code, timing_point_code)
 
-    await ov_api.async_update()
+    ov_api.update()
 
     if ov_api is None:
         raise PlatformNotReady
@@ -90,7 +88,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             sensors.append(OvApiSensor(ov_api, (name + "_future_" + str(counter)), stop_code, timing_point_code,
                                        route_code, line_filter, counter))
 
-    async_add_entities(sensors, True)
+    add_entities(sensors, True)
 
 
 class OvApiSensor(Entity):
@@ -202,9 +200,9 @@ class OvApiSensor(Entity):
                 ATTR_UPDATE_CYCLE: str(MIN_TIME_BETWEEN_UPDATES.seconds) + ' seconds',
                 ATTR_CREDITS: CONF_CREDITS
             }
-    async def async_update(self):
+    def update(self):
         """Get the latest data from the OvApi."""
-        await self._json_data.async_update()
+        self._json_data.update()
 
         data = json.loads(self._json_data.result)
 
@@ -307,13 +305,13 @@ class OvApiData:
         }
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update(self):
+    def update(self):
         if self._stop_code == CONF_STOP_CODE and self._timing_point_code == CONF_TIMING_POINT_CODE:
             _LOGGER.error("Impossible to get data from OvApi, no stop code and no timing point code.")
             self.result = "Impossible to get data from OvApi, no stop code and no timing point code."
         elif self._stop_code != CONF_STOP_CODE:
             try:
-                response = http.client.HTTPConnection(self._resource)
+                response = http.client.HTTPConnection(self._resource, timeout=1)
                 response.request("GET", "/stopareacode/" + self._stop_code, headers = self._headers)
                 result = response.getresponse()
                 self.result = result.read().decode('utf-8')
@@ -322,7 +320,7 @@ class OvApiData:
                 self.result = "Impossible to get data from OvApi using stop code."
         else:
             try:
-                response = http.client.HTTPConnection(self._resource)
+                response = http.client.HTTPConnection(self._resource, timeout=1)
                 response.request("GET", "/tpc/" + self._timing_point_code, headers = self._headers)
                 result = response.getresponse()
                 self.result = result.read().decode('utf-8')
