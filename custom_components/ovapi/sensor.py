@@ -233,6 +233,7 @@ class OvApiSensor(Entity):
                                  stop['DestinationName50'],
                     "stop_name": stop['TimingPointName'],
                     "TargetDepartureTime": target_departure_time.time(),
+                    "TargetDepartureDateTime": target_departure_time,
                     "ExpectedArrivalTime": expected_arrival_time.time(),
                     "Delay": delay
                 }
@@ -251,7 +252,7 @@ class OvApiSensor(Entity):
                 self._departures = STATE_UNKNOWN
                 self._state = STATE_UNKNOWN
             else:
-                stops_list.sort(key=operator.itemgetter('TargetDepartureTime'))
+                stops_list.sort(key=operator.itemgetter('TargetDepartureDateTime'))
 
                 self._destination = stops_list[self._sensor_number]["destination"]
                 self._provider = stops_list[self._sensor_number]["provider"]
