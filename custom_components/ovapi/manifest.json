@@ -4,5 +4,6 @@
     "documentation": "https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi",
     "dependencies": [],
     "codeowners": [],
-    "requirements": []
+    "requirements": [],
+    "version": "1.4.3"
   }
