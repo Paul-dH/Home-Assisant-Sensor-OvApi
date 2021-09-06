@@ -92,73 +92,50 @@ sensor:
 
 
 ### Lovelace card example:
-```yaml
-cards:
-  - card:
-      columns: 5
-      entities:
-        - entity: sensor.tram_23_templated
-          icon: 'mdi:tram'
-        - entity: sensor.tram_23_future_1_templated
-          icon: 'mdi:x'
-        - entity: sensor.tram_23_future_2_templated
-          icon: 'mdi:x'
-        - entity: sensor.tram_23_future_3_templated
-          icon: 'mdi:x'
-        - entity: sensor.tram_23_future_4_templated
-          icon: 'mdi:x'
-      show_header_toggle: false
-      show_name: false
-      title: Tram 23
-      type: glance
-    cards: null
+type: picture-elements
+elements:
+  - type: state-label
+    entity: sensor.tram_23
+    attribute: name
+    icon: mdi:tram
     style:
-      background-image: url(/local/images/tram.png?v=0.6)
-    type: 'custom:card-modder'
-  - card:
-      columns: 5
-      entities:
-        - entity: sensor.bus_140_templated
-          icon: 'mdi:bus'
-        - entity: sensor.bus_140_future_1_templated
-          icon: 'mdi:x'
-        - entity: sensor.bus_140_future_2_templated
-          icon: 'mdi:x'
-        - entity: sensor.bus_140_future_3_templated
-          icon: 'mdi:x'
-        - entity: sensor.bus_140_future_4_templated
-          icon: 'mdi:x'
-      show_header_toggle: false
-      show_name: false
-      title: Bus 140
-      type: glance
-    cards: null
+      top: 25%
+      left: 10%
+      '--paper-item-icon-color': white
+  - type: state-icon
+    entity: sensor.tram_23_future_4_templated
+    icon: mdi:tram
     style:
-      background-image: url(/local/images/bus1.png?v=0.3)
-    type: 'custom:card-modder'
-  - card:
-      columns: 5
-      entities:
-        - entity: sensor.bus_183_templated
-          icon: 'mdi:bus'
-        - entity: sensor.bus_183_future_1_templated
-          icon: 'mdi:x'
-        - entity: sensor.bus_183_future_2_templated
-          icon: 'mdi:x'
-        - entity: sensor.bus_183_future_3_templated
-          icon: 'mdi:x'
-        - entity: sensor.bus_183_future_4_templated
-          icon: 'mdi:x'
-      show_header_toggle: false
-      show_name: false
-      title: Bus 83 / 183
-      type: glance
-    cards: null
+      top: 65%
+      left: 10%
+      '--paper-item-icon-color': white
+  - type: state-label
+    entity: sensor.tram_23_templated
     style:
-      background-image: url(/local/images/bus2.png?v=0.1)
-    type: 'custom:card-modder'
-type: vertical-stack
-```
+      top: 85%
+      left: 10%
+  - type: state-label
+    entity: sensor.tram_23_future_1_templated
+    style:
+      top: 85%
+      left: 25%
+  - type: state-label
+    entity: sensor.tram_23_future_2_templated
+    style:
+      top: 85%
+      left: 40%
+  - type: state-label
+    entity: sensor.tram_23_future_3_templated
+    style:
+      top: 85%
+      left: 55%
+  - type: state-label
+    entity: sensor.tram_23_future_4_templated
+    style:
+      top: 85%
+      left: 70%
+image: /local/images/tram.png
+
 
 
 ### Note and credits
