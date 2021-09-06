@@ -92,6 +92,7 @@ sensor:
 
 
 ### Lovelace card example:
+```yaml
 type: picture-elements
 elements:
   - type: state-label
@@ -134,9 +135,7 @@ elements:
     style:
       top: 85%
       left: 70%
-image: /local/images/tram.png
-
-
+```
 
 ### Note and credits
 - [Petro](https://community.home-assistant.io/u/petro/summary) - For extensive help at coding the sensor templates.
@@ -147,7 +146,7 @@ image: /local/images/tram.png
 - [IIIdefconIII](https://github.com/IIIdefconIII/) - Some minor contributions to add the custom updater and updating the readme.
 
 ### Custom updater:
-```
+```yaml
 custom_updater:
   track:
     - components
