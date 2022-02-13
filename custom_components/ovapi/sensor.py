@@ -157,7 +157,7 @@ class OvApiSensor(Entity):
         return self._state
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         if self._line_filter == ATTR_LINE_FILTER:
             filter = None
