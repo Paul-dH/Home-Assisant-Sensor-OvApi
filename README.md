@@ -6,7 +6,10 @@ This is a sensor for Home Assistant and it will retrieve departure information o
 
 ### Install:
 - Create the following folder structure: /config/custom_components/ovapi and place these [3 files](https://github.com/Paul-dH/Home-Assisant-Sensor-OvApi/tree/master/custom_components/ovapi) there.
+- restart Home Assistant to make the platform 'ovapi' available for configuration
 - Add the configuration to configuration.yaml, see the parameter descriptions below and refer to the examples.
+- restart Home Assistant to create the entities as per your configuration
+- entities are now active and ready to use and display
 
 ### Sensor options (there are two ways to use the sensor):
 
@@ -28,7 +31,7 @@ This is a sensor for Home Assistant and it will retrieve departure information o
 - **line_filter** *(int, comma seperated)* - You might bump into the fact that there are multiple lines that use the same stop, with this property you can filter all passes with the line number that you want.
 
 
-### To find the stop_code (stopareacode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/stopareacode)
+### To find the stop_code (stopareacode) refer to the JSON response of: [v0.ovapi.nl/stopareacode](http://v0.ovapi.nl/stopareacode)
 I've used the building JSON parser from Firefox, the search input is on the top right.
 
 - Search in the response with a keyword of the stop or the line you want, eg: kastelenring
@@ -44,15 +47,17 @@ I've used the building JSON parser from Firefox, the search input is on the top 
 - Open one of the stops
 - Look for the key 'DestinationName50', this should hold the destination that you want. If this is the wrong way, then you should close the JSON output and open the other route code key.
 - Note the route_code and the stop_code and place these values in the sensor configuration.
+- Optionally use the line filter argument to filter only the line(s) that you want to see.
 
 
-### To find the timing_point_code (TimingPointCode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/line)
+### To find the timing_point_code (TimingPointCode) refer to the JSON response of: [v0.ovapi.nl/line](http://v0.ovapi.nl/line)
 I've used the building JSON parser from Firefox, the search input is on the top right.
 
 - Search in the response with a keyword of the destination of the line, eg: Leyenburg
 - The result of this should be a list of line identifiers, expand them and look for the one that has the correct value in `DestinationName50`. Copy the line identifier, e.g. HTM_6_2.
 - Next, open the url: [http://v0.ovapi.nl/line/HTM_6_2](http://v0.ovapi.nl/line/HTM_6_2), this page lists all stops of the line. Search for your stop name, e.g. kastelenring.
 - Find the TimingPointCode and use this as value in the sensor configuration.
+- Optionally use the line filter argument to filter only the line(s) that you want to see.
 
 ### Sensor configuration examples
 Create 1 sensor to show the next upcomming departure of a particular line
