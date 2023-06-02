@@ -34,9 +34,6 @@ DEFAULT_DATE_FORMAT = "%y-%m-%dT%H:%M:%S"
 DEFAULT_SHOW_FUTURE_DEPARTURES = 0
 
 ATTR_NAME = 'name'
-ATTR_STOP_CODE = 'stop_code'
-ATTR_ROUTE_CODE = 'route_code'
-ATTR_TIMING_POINT_CODE = 'timing_point_code'
 ATTR_OVAPI_SEARCH_CODE = 'search_code'
 ATTR_LINE_FILTER = 'line_filter'
 ATTR_ICON = 'icon'
@@ -184,9 +181,6 @@ class OvApiSensor(Entity):
         if self._sensor_number == 0:
             return{
                 ATTR_NAME: self._name,
-                ATTR_STOP_CODE: self._stop_code,
-                ATTR_ROUTE_CODE: self._route_code,
-                ATTR_TIMING_POINT_CODE: self._timing_point_code,
                 ATTR_OVAPI_SEARCH_CODE: code_display,
                 ATTR_LINE_FILTER: filter,
                 ATTR_ICON: self._icon,
@@ -204,9 +198,6 @@ class OvApiSensor(Entity):
         else:
             return {
                 ATTR_NAME: self._name,
-                ATTR_STOP_CODE: self._stop_code,
-                ATTR_ROUTE_CODE: self._route_code,
-                ATTR_TIMING_POINT_CODE: self._timing_point_code,
                 ATTR_OVAPI_SEARCH_CODE: code_display,
                 ATTR_LINE_FILTER: filter,
                 ATTR_ICON: self._icon,
@@ -296,22 +287,10 @@ class OvApiSensor(Entity):
 
                     for counter, stop in enumerate(next_stops_list):
                         if counter <= 11:
-                            if next_stops_list[counter]["Delay"] == 0:
-                                departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
-                            else:
-                                departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') +
-                                                      " + " + str(next_stops_list[counter]["Delay"]) + "m")
+                            departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') + next_stops_list[counter]["Delay"])
                     self._departures = departure_list
 
-                    if stops_list[self._sensor_number]["Delay"] == 0:
-                        self._state = self._departure
-                    else:
-                        self._state = stops_list[self._sensor_number]["ExpectedArrivalTime"].strftime('%H:%M')
-                else:
-                    if stops_list[self._sensor_number]["Delay"] == 0:
-                        self._state = self._departure
-                    else:
-                        self._state = self._departure + ' +' + str(self._delay) + 'm'
+                self._state = self._departure + self._delay
 
         if self._transport_type == "Tram":
             self._icon = 'mdi:train'
