@@ -95,6 +95,7 @@ class OvApiSensor(Entity):
     def __init__(self, ov_api, name, stop_code, timing_point_code, route_code, line_filter, counter):
         self._json_data = ov_api
         self._name = name
+        self._unique_id = name.replace(' ','_')
         self._stop_code = stop_code
         self._timing_point_code = timing_point_code
         self._route_code = route_code
@@ -116,7 +117,12 @@ class OvApiSensor(Entity):
         """Return the name of the sensor."""
         return self._name
 
-    @property
+   @property
+    def unique_id(self):
+        """Return the name of the sensor."""
+        return self._unique_id
+
+   @property
     def icon(self):
         return self._icon
 
