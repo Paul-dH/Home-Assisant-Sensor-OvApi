@@ -262,13 +262,13 @@ class OvApiSensor(Entity):
             self._departure = STATE_UNKNOWN
             self._delay = STATE_UNKNOWN
             self._departures = STATE_UNKNOWN
-            self._state = STATE_UNKNOWN
+            self._state = '--:--'
         else:
             if self._sensor_number >= len(stops_list):
                 self._departure = STATE_UNKNOWN
                 self._delay = STATE_UNKNOWN
                 self._departures = STATE_UNKNOWN
-                self._state = STATE_UNKNOWN
+                self._state = '--:--'
             else:
                 stops_list.sort(key=operator.itemgetter('TargetDepartureDateTime'))
 
