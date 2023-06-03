@@ -293,7 +293,7 @@ class OvApiSensor(Entity):
                 self._state = self._departure + self._delay
 
         if self._transport_type == "Tram":
-            self._icon = 'mdi:train'
+            self._icon = 'mdi:tram'
         if self._transport_type == "Bus":
             self._icon = 'mdi:bus'
         if self._transport_type == "Metro":
