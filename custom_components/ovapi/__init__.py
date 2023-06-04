@@ -13,6 +13,11 @@ from .const import DOMAIN, PLATFORMS, STARTUP_MESSAGE
 
 _LOGGER = logging.getLogger(__name__)
 
+DOMAIN: Final = "ovapi"
+    
+PLATFORMS = [
+    Platform.SENSOR,
+]
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the platforms."""
