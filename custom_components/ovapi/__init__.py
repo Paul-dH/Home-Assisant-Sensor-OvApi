@@ -9,11 +9,9 @@ from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.reload import async_reload_integration_platforms
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, PLATFORMS, STARTUP_MESSAGE
-
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN: Final = "ovapi"
+DOMAIN = "ovapi"
     
 PLATFORMS = [
     Platform.SENSOR,
