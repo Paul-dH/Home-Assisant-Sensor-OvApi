@@ -1,17 +1,16 @@
-from __future__ import annotations
-
 import logging
 
 import voluptuous as vol
-from homeassistant.const import SERVICE_RELOAD
+from homeassistant.const import SERVICE_RELOAD, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.entity_component import EntityComponent
 from homeassistant.helpers.reload import async_reload_integration_platforms
 from homeassistant.helpers.typing import ConfigType
+from typing import Final
 
 _LOGGER = logging.getLogger(__name__)
 
-DOMAIN = "ovapi"
+DOMAIN: Final = "ovapi"
     
 PLATFORMS = [
     Platform.SENSOR,
