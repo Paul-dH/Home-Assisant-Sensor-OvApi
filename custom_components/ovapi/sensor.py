@@ -44,6 +44,7 @@ ATTR_LINE_NAME = 'line_name'
 ATTR_STOP_NAME = 'stop_name'
 ATTR_DEPARTURE = 'departure'
 ATTR_DELAY = 'delay'
+ATTR_MINUTES_TO_GO = 'arrives'
 ATTR_DEPARTURES = 'departures'
 ATTR_UPDATE_CYCLE = 'update_cycle'
 ATTR_CREDITS = 'credits'
@@ -107,6 +108,7 @@ class OvApiSensor(Entity):
         self._stop_name = None
         self._departure = None
         self._delay = None
+        self._minutes_to_go = None
         self._departures = None
         self._state = None
 
@@ -191,6 +193,7 @@ class OvApiSensor(Entity):
                 ATTR_STOP_NAME: self._stop_name,
                 ATTR_DEPARTURE: self._departure,
                 ATTR_DELAY: delay_display,
+                ATTR_MINUTES_TO_GO: self._minutes_to_go,
                 ATTR_DEPARTURES: self._departures,
                 ATTR_UPDATE_CYCLE: str(MIN_TIME_BETWEEN_UPDATES.seconds) + ' seconds',
                 ATTR_CREDITS: CONF_CREDITS
@@ -208,6 +211,7 @@ class OvApiSensor(Entity):
                 ATTR_STOP_NAME: self._stop_name,
                 ATTR_DEPARTURE: self._departure,
                 ATTR_DELAY: delay_display,
+                ATTR_MINUTES_TO_GO: self._minutes_to_go,
                 ATTR_UPDATE_CYCLE: str(MIN_TIME_BETWEEN_UPDATES.seconds) + ' seconds',
                 ATTR_CREDITS: CONF_CREDITS
             }
@@ -242,6 +246,11 @@ class OvApiSensor(Entity):
                     delay = ' -' + str(round(calculate_delay.seconds / 60)) + 'm'
                 else
                     delay = ''
+                    
+                if expected_arrival_time < datetime.now():
+                    minutes_to_go = 'Now'
+                else:
+                    minutes_to_go = 'in ' + str(round((expected_arrival_time - datetime.now()).seconds / 60)) + ' min.'
 
                 stops_item = {
                     "destination": stop['DestinationName50'],
@@ -253,7 +262,8 @@ class OvApiSensor(Entity):
                     "TargetDepartureTime": target_departure_time.time(),
                     "TargetDepartureDateTime": target_departure_time,
                     "ExpectedArrivalTime": expected_arrival_time.time(),
-                    "Delay": delay
+                    "Delay": delay,
+                    "Minutes_to_go": minutes_to_go
                 }
 
                 stops_list.append(stops_item)
@@ -280,6 +290,7 @@ class OvApiSensor(Entity):
 
                 self._departure = stops_list[self._sensor_number]["TargetDepartureTime"].strftime('%H:%M')
                 self._delay = str(stops_list[self._sensor_number]["Delay"])
+                self._minutes_to_go = stop_list[self._sensor_number]["Minutes_to_go"]
 
                 if self._sensor_number == 0:
                     departure_list = []
