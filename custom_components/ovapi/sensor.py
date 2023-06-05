@@ -16,7 +16,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '1.4.2a'
+__version__ = '1.4.3'
 
 _LOGGER = logging.getLogger(__name__)
 _RESOURCE = 'v0.ovapi.nl'
@@ -247,7 +247,7 @@ class OvApiSensor(Entity):
                 else
                     delay = ''
                     
-                if expected_arrival_time < datetime.now():
+                if expected_arrival_time < (datetime.now() + timedelta(minutes=1)):
                     minutes_to_go = 'Now'
                 else:
                     minutes_to_go = 'in ' + str(round((expected_arrival_time - datetime.now()).seconds / 60)) + ' min.'
