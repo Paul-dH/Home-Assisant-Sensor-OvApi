@@ -16,7 +16,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '1.4.2'
+__version__ = '1.4.3'
 
 _LOGGER = logging.getLogger(__name__)
 _RESOURCE = 'v0.ovapi.nl'
@@ -34,9 +34,7 @@ DEFAULT_DATE_FORMAT = "%y-%m-%dT%H:%M:%S"
 DEFAULT_SHOW_FUTURE_DEPARTURES = 0
 
 ATTR_NAME = 'name'
-ATTR_STOP_CODE = 'stop_code'
-ATTR_ROUTE_CODE = 'route_code'
-ATTR_TIMING_POINT_CODE = 'timing_point_code'
+ATTR_OVAPI_SEARCH_CODE = 'search_code'
 ATTR_LINE_FILTER = 'line_filter'
 ATTR_ICON = 'icon'
 ATTR_DESTINATION = 'destination'
@@ -46,6 +44,7 @@ ATTR_LINE_NAME = 'line_name'
 ATTR_STOP_NAME = 'stop_name'
 ATTR_DEPARTURE = 'departure'
 ATTR_DELAY = 'delay'
+ATTR_MINUTES_TO_GO = 'arrives'
 ATTR_DEPARTURES = 'departures'
 ATTR_UPDATE_CYCLE = 'update_cycle'
 ATTR_CREDITS = 'credits'
@@ -95,9 +94,10 @@ class OvApiSensor(Entity):
     def __init__(self, ov_api, name, stop_code, timing_point_code, route_code, line_filter, counter):
         self._json_data = ov_api
         self._name = name
+        self._unique_id = name.replace(' ','_')
         self._stop_code = stop_code
-        self._timing_point_code = timing_point_code
         self._route_code = route_code
+        self._timing_point_code = timing_point_code
         self._line_filter = line_filter
         self._sensor_number = counter
         self._icon = None
@@ -108,6 +108,7 @@ class OvApiSensor(Entity):
         self._stop_name = None
         self._departure = None
         self._delay = None
+        self._minutes_to_go = None
         self._departures = None
         self._state = None
 
@@ -115,6 +116,11 @@ class OvApiSensor(Entity):
     def name(self):
         """Return the name of the sensor."""
         return self._name
+
+    @property
+    def unique_id(self):
+        """Return the unique ID of the sensor. Allows to manage the entity in the UI """
+        return self._unique_id
 
     @property
     def icon(self):
@@ -160,15 +166,24 @@ class OvApiSensor(Entity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         if self._line_filter == ATTR_LINE_FILTER:
-            filter = None
+            filter = 'None'
         else:
             filter = self._line_filter
+        
+        if self._stop_code != CONF_STOP_CODE and self._stop_code is not None:
+            code_display = 'Stop code: ' + self._stop_code + ' & Route code: ' + self._route_code
+        else:    
+            code_display = 'Timing point code: ' + self._timing_point_code
+        
+        if self._delay == '':
+            delay_display = 'On time'
+        else    
+            delay_display = self._delay
+            
         if self._sensor_number == 0:
             return{
                 ATTR_NAME: self._name,
-                ATTR_STOP_CODE: self._stop_code,
-                ATTR_TIMING_POINT_CODE: self._timing_point_code,
-                ATTR_ROUTE_CODE: self._route_code,
+                ATTR_OVAPI_SEARCH_CODE: code_display,
                 ATTR_LINE_FILTER: filter,
                 ATTR_ICON: self._icon,
                 ATTR_DESTINATION: self._destination,
@@ -177,7 +192,8 @@ class OvApiSensor(Entity):
                 ATTR_LINE_NAME: self._line_name,
                 ATTR_STOP_NAME: self._stop_name,
                 ATTR_DEPARTURE: self._departure,
-                ATTR_DELAY: self._delay,
+                ATTR_DELAY: delay_display,
+                ATTR_MINUTES_TO_GO: self._minutes_to_go,
                 ATTR_DEPARTURES: self._departures,
                 ATTR_UPDATE_CYCLE: str(MIN_TIME_BETWEEN_UPDATES.seconds) + ' seconds',
                 ATTR_CREDITS: CONF_CREDITS
@@ -185,9 +201,7 @@ class OvApiSensor(Entity):
         else:
             return {
                 ATTR_NAME: self._name,
-                ATTR_STOP_CODE: self._stop_code,
-                ATTR_TIMING_POINT_CODE: self._timing_point_code,
-                ATTR_ROUTE_CODE: self._route_code,
+                ATTR_OVAPI_SEARCH_CODE: code_display,
                 ATTR_LINE_FILTER: filter,
                 ATTR_ICON: self._icon,
                 ATTR_DESTINATION: self._destination,
@@ -196,7 +210,8 @@ class OvApiSensor(Entity):
                 ATTR_LINE_NAME: self._line_name,
                 ATTR_STOP_NAME: self._stop_name,
                 ATTR_DEPARTURE: self._departure,
-                ATTR_DELAY: self._delay,
+                ATTR_DELAY: delay_display,
+                ATTR_MINUTES_TO_GO: self._minutes_to_go,
                 ATTR_UPDATE_CYCLE: str(MIN_TIME_BETWEEN_UPDATES.seconds) + ' seconds',
                 ATTR_CREDITS: CONF_CREDITS
             }
@@ -213,17 +228,29 @@ class OvApiSensor(Entity):
             stops = itertools.islice(data[self._stop_code][self._route_code]['Passes'].values(), 50)
         elif self._timing_point_code != CONF_TIMING_POINT_CODE and self._timing_point_code is not None:
             self._stop_code = None
+            self._route_code = None
             stops = itertools.islice(data[self._timing_point_code]['Passes'].values(), 50)
         else:
             _LOGGER.error("Impossible to get data from OvApi, no stop code and no timing point code!")
 
         stops_list = []
         for stop in stops:
-            if self._line_filter == ATTR_LINE_FILTER or stop['LinePublicNumber'] in self._line_filter.split(", "):
+            if (self._line_filter == ATTR_LINE_FILTER or stop['LinePublicNumber'] in self._line_filter.split(", ")) and (stop['JourneyStopType'] != 'LAST'):
                 target_departure_time = datetime.strptime(stop['TargetDepartureTime'], "%Y-%m-%dT%H:%M:%S")
                 expected_arrival_time = datetime.strptime(stop['ExpectedDepartureTime'], "%Y-%m-%dT%H:%M:%S")
-                calculate_delay = expected_arrival_time - target_departure_time
-                delay = round(calculate_delay.seconds / 60)
+                if expected_arrival_time > target_departure_time + timedelta(minutes=1):
+                    calculate_delay = expected_arrival_time - target_departure_time
+                    delay = ' +' + str(round(calculate_delay.seconds / 60)) + 'm'
+                elif expected_arrival_time < target_departure_time + timedelta(minutes=-1):
+                    calculate_delay = target_departure_time - expected_arrival_time
+                    delay = ' -' + str(round(calculate_delay.seconds / 60)) + 'm'
+                else
+                    delay = ''
+                    
+                if expected_arrival_time < (datetime.now() + timedelta(minutes=1)):
+                    minutes_to_go = 'Now'
+                else:
+                    minutes_to_go = 'in ' + str(round((expected_arrival_time - datetime.now()).seconds / 60)) + ' min.'
 
                 stops_item = {
                     "destination": stop['DestinationName50'],
@@ -235,7 +262,8 @@ class OvApiSensor(Entity):
                     "TargetDepartureTime": target_departure_time.time(),
                     "TargetDepartureDateTime": target_departure_time,
                     "ExpectedArrivalTime": expected_arrival_time.time(),
-                    "Delay": delay
+                    "Delay": delay,
+                    "Minutes_to_go": minutes_to_go
                 }
 
                 stops_list.append(stops_item)
@@ -244,13 +272,13 @@ class OvApiSensor(Entity):
             self._departure = STATE_UNKNOWN
             self._delay = STATE_UNKNOWN
             self._departures = STATE_UNKNOWN
-            self._state = STATE_UNKNOWN
+            self._state = '--:--'
         else:
             if self._sensor_number >= len(stops_list):
                 self._departure = STATE_UNKNOWN
                 self._delay = STATE_UNKNOWN
                 self._departures = STATE_UNKNOWN
-                self._state = STATE_UNKNOWN
+                self._state = '--:--'
             else:
                 stops_list.sort(key=operator.itemgetter('TargetDepartureDateTime'))
 
@@ -262,6 +290,7 @@ class OvApiSensor(Entity):
 
                 self._departure = stops_list[self._sensor_number]["TargetDepartureTime"].strftime('%H:%M')
                 self._delay = str(stops_list[self._sensor_number]["Delay"])
+                self._minutes_to_go = stop_list[self._sensor_number]["Minutes_to_go"]
 
                 if self._sensor_number == 0:
                     departure_list = []
@@ -269,25 +298,13 @@ class OvApiSensor(Entity):
 
                     for counter, stop in enumerate(next_stops_list):
                         if counter <= 11:
-                            if next_stops_list[counter]["Delay"] == 0:
-                                departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M'))
-                            else:
-                                departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') +
-                                                      " + " + str(next_stops_list[counter]["Delay"]) + "m")
+                            departure_list.append(next_stops_list[counter]["TargetDepartureTime"].strftime('%H:%M') + next_stops_list[counter]["Delay"])
                     self._departures = departure_list
 
-                    if stops_list[self._sensor_number]["Delay"] == 0:
-                        self._state = self._departure
-                    else:
-                        self._state = stops_list[self._sensor_number]["ExpectedArrivalTime"].strftime('%H:%M')
-                else:
-                    if stops_list[self._sensor_number]["Delay"] == 0:
-                        self._state = self._departure
-                    else:
-                        self._state = self._departure + ' +' + str(self._delay) + 'm'
+                self._state = self._departure + self._delay
 
         if self._transport_type == "Tram":
-            self._icon = 'mdi:train'
+            self._icon = 'mdi:tram'
         if self._transport_type == "Bus":
             self._icon = 'mdi:bus'
         if self._transport_type == "Metro":
