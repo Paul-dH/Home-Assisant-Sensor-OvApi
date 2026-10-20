@@ -16,7 +16,7 @@ from homeassistant.util import Throttle
 
 import homeassistant.helpers.config_validation as cv
 
-__version__ = '1.4.2'
+__version__ = '1.4.4'
 
 _LOGGER = logging.getLogger(__name__)
 _RESOURCE = 'v0.ovapi.nl'
@@ -26,12 +26,14 @@ CONF_TIMING_POINT_CODE = 'timing_point_code'
 CONF_ROUTE_CODE = 'route_code'
 CONF_SHOW_FUTURE_DEPARTURES = 'show_future_departures'
 CONF_LINE_FILTER = 'line_filter'
+CONF_DEPARTURES_ONLY = 'departures_only'
 CONF_DATE_FORMAT = 'date_format'
 CONF_CREDITS = 'Data provided by v0.ovapi.nl'
 
 DEFAULT_NAME = 'Line info'
 DEFAULT_DATE_FORMAT = "%y-%m-%dT%H:%M:%S"
 DEFAULT_SHOW_FUTURE_DEPARTURES = 0
+DEFAULT_DEPARTURES_ONLY = False
 
 ATTR_NAME = 'name'
 ATTR_STOP_CODE = 'stop_code'
@@ -59,6 +61,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_ROUTE_CODE, default=CONF_ROUTE_CODE): cv.string,
     vol.Optional(CONF_LINE_FILTER, default=CONF_LINE_FILTER): cv.string,
     vol.Optional(CONF_SHOW_FUTURE_DEPARTURES, default=DEFAULT_SHOW_FUTURE_DEPARTURES): cv.positive_int,
+    vol.Optional(CONF_DEPARTURES_ONLY, default=DEFAULT_DEPARTURES_ONLY): cv.boolean,
     vol.Optional(CONF_DATE_FORMAT, default=DEFAULT_DATE_FORMAT): cv.string,
 })
 
@@ -71,6 +74,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     route_code = config.get(CONF_ROUTE_CODE)
     future_departures = config.get(CONF_SHOW_FUTURE_DEPARTURES)
     line_filter = config.get(CONF_LINE_FILTER)
+    departures_only = config.get(CONF_DEPARTURES_ONLY)
 
     ov_api = OvApiData(stop_code, timing_point_code)
 
@@ -83,22 +87,24 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     for counter in range(future_departures + 1):
         if counter == 0:
-            sensors.append(OvApiSensor(ov_api, name, stop_code, timing_point_code, route_code, line_filter, counter))
+            sensors.append(OvApiSensor(ov_api, name, stop_code, timing_point_code, route_code, line_filter,
+                                       departures_only, counter))
         else:
             sensors.append(OvApiSensor(ov_api, (name + "_future_" + str(counter)), stop_code, timing_point_code,
-                                       route_code, line_filter, counter))
+                                       route_code, line_filter, departures_only, counter))
 
     add_entities(sensors, True)
 
 
 class OvApiSensor(Entity):
-    def __init__(self, ov_api, name, stop_code, timing_point_code, route_code, line_filter, counter):
+    def __init__(self, ov_api, name, stop_code, timing_point_code, route_code, line_filter, departures_only, counter):
         self._json_data = ov_api
         self._name = name
         self._stop_code = stop_code
         self._timing_point_code = timing_point_code
         self._route_code = route_code
         self._line_filter = line_filter
+        self._departures_only = departures_only
         self._sensor_number = counter
         self._icon = None
         self._destination = None
@@ -219,6 +225,9 @@ class OvApiSensor(Entity):
 
         stops_list = []
         for stop in stops:
+            # A pass whose journey ends at this stop is an arrival, not a departure
+            if self._departures_only and stop.get('JourneyStopType') == 'LAST':
+                continue
             if self._line_filter == ATTR_LINE_FILTER or stop['LinePublicNumber'] in self._line_filter.split(", "):
                 target_departure_time = datetime.strptime(stop['TargetDepartureTime'], "%Y-%m-%dT%H:%M:%S")
                 expected_arrival_time = datetime.strptime(stop['ExpectedDepartureTime'], "%Y-%m-%dT%H:%M:%S")

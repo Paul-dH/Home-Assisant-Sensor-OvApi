@@ -26,6 +26,7 @@ This is a sensor for Home Assistant and it will retrieve departure information o
 **Optional parameters:**
 - **show_future_departures:** *(int, max value is 50)* - The sensor always creates one sensor in Hass, this property can be configured with a value of 2-5. If this is configured, the component creates the configured number of sensors in HASS. These sensors contain future departments together with theire delay if applicable.
 - **line_filter** *(int, comma seperated)* - You might bump into the fact that there are multiple lines that use the same stop, with this property you can filter all passes with the line number that you want.
+- **departures_only** *(boolean, default false)* - When the stop is the last stop of a line, OVapi also returns the vehicles that end their journey there. Set this to `true` to hide those arrivals, so the sensors only show departures you can board.
 
 
 ### To find the stop_code (stopareacode) refer to the JSON response of: [v0.ovapi.nl](http://v0.ovapi.nl/stopareacode)
@@ -88,6 +89,15 @@ sensor:
     timing_point_code: 31000226
     line_filter: 2, 6
     show_future_departures: 4
+```
+Create 3 sensors at a terminus stop, hiding the vehicles that end their journey there.
+```yaml
+sensor:
+  - platform: ovapi
+    name: Metro_E
+    timing_point_code: 31008732
+    departures_only: true
+    show_future_departures: 2
 ```
 
 
